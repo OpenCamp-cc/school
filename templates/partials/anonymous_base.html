@@ -1,0 +1,48 @@
+{% load static %}
+<!DOCTYPE html>
+<html class="h-full {% block bgcolor %}bg-primary-50{% endblock %} scroll-smooth" lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>{% block title %}LingoRaft{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/app.css' %}" />
+    <link rel="shortcut icon" type="image/png" href="{% static 'img/favicon.png' %}"/>
+    
+    <script src="{% static 'js/htmx.min.js' %}" defer></script>
+    <script src="{% static 'js/alpine.min.js' %}" defer></script>
+    <script src="https://kit.fontawesome.com/5ec1ed85ab.js" crossorigin="anonymous"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400&family=Shippori+Mincho+B1&family=Young+Serif&display=swap" rel="stylesheet">
+
+ {% block meta %}
+    <meta property="og:title" content="" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="" />
+    <meta property="og:image" content="" />
+
+    <meta name="twitter:title" content="">
+    <meta name="twitter:description" content="">
+    <meta name="twitter:image" content="">
+    <meta name="twitter:card" content="summary_large_image">
+{% endblock %}
+
+{% block head %}
+{% endblock %}
+  </head>
+  <body class="h-full font-display">
+    {% block nav %}
+    {% include 'partials/nav.html' %}
+    {% endblock %}
+
+    {% block content %}
+    {% endblock %}
+
+    {% block footer %}
+    {% include 'partials/footer.html' %}
+    {% endblock %}
+
+    {% block javascript %}{% endblock %}
+  </body>
+</html>

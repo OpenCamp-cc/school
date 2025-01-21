@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+@layer base {
+    *,
+    ::after,
+    ::before,
+    ::backdrop,
+    ::file-selector-button {
+      border-color: var(--color-gray-200, currentColor);
+    }
+
+    button {
+        border-color: var(--color-gray-200, currentColor);
+        cursor: pointer;
+    }
+}
+
+@theme {
+    --font-serif: "Young Serif", "serif";
+    --font-subheader: "Shippori Mincho B1", "serif";
+    --font-display: "Bricolage Grotesque", "sans-serif";
+
+    /* valencia */
+    --color-valencia-50: #fdf3f4;
+    --color-valencia-100: #fce4e5;
+    --color-valencia-200: #faced0;
+    --color-valencia-300: #f5acb0;
+    --color-valencia-400: #ed7c82;
+    --color-valencia-500: #de434b;
+    --color-valencia-600: #cd353d;
+    --color-valencia-700: #ac2930;
+    --color-valencia-800: #8e262b;
+    --color-valencia-900: #772529;
+    --color-valencia-950: #400f12;
+
+    /* primary */
+    --color-primary-50: #fcfbf8;
+    --color-primary-100: #f2eee2;
+    --color-primary-200: #e5dcc3;
+    --color-primary-300: #d4c49d;
+    --color-primary-400: #c2a775;
+    --color-primary-500: #b5915a;
+    --color-primary-600: #a77e4f;
+    --color-primary-700: #8b6643;
+    --color-primary-800: #71523b;
+    --color-primary-900: #5c4532;
+    --color-primary-950: #312319;
+
+
+
+    /* secondary */
+    --color-secondary-50: #f7f4fe;
+    --color-secondary-100: #efebfc;
+    --color-secondary-200: #e3dafa;
+    --color-secondary-300: #cebdf5;
+    --color-secondary-400: #b597ee;
+    --color-secondary-500: #9c6de5;
+    --color-secondary-600: #8d4ed9;
+    --color-secondary-700: #7d3cc5;
+    --color-secondary-800: #6932a5;
+    --color-secondary-900: #572a88;
+    --color-secondary-950: #3e1d68;
+}

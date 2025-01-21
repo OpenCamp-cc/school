@@ -1,0 +1,120 @@
+{% extends 'partials/anonymous_base.html' %}
+{% load static %}
+
+{% block bgcolor %}bg-primary-50{% endblock %}
+
+{% block content %}
+<div class="w-screen flex min-h-screen relative">
+    <section class="w-full lg:w-1/2 p-8 mb-8 mx-auto">
+        <!-- Main Content -->
+        <main class="flex flex-col items-center justify-center mt-8 px-6">
+            <!-- Avatar -->
+            <div class="relative">
+                <div class="w-24 h-24 rounded-full overflow-visible flex items-center justify-center">
+                    {% if profile.profile_image %}
+                        <img src="{{ profile.profile_image.url }}" alt="Profile" class="w-full h-full rounded-full object-cover">
+                    {% else %}
+                        <div class="w-full h-24 rounded-full flex items-center justify-center bg-black text-white text-3xl font-semibold">
+                            {{ profile.name|first }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Name -->
+            <h1 class="text-2xl font-bold text-gray-900 mt-6">{{ profile.name }}</h1>
+
+            <!-- Bio -->
+            {% if profile.bio %}
+            <div class="relative max-w-lg w-full mt-3">
+                <div class="text-center text-gray-600">
+                    {{ profile.bio }}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Social Links -->
+            <div class="flex gap-3 mt-4">
+                {% if active_links %}
+                    {% for link in active_links %}
+                        <button type="button" class="hover:opacity-80" onclick="openSocialModal()">
+                            {% if link.name == 'threads' %}
+                                <a href={{ link.url }} target="_blank"><i class="fa-brands fa-threads text-2xl"></i></a>
+                            {% elif link.name == 'instagram' %}
+                                <a href={{ link.url }} target="_blank"><i class="fa-brands fa-instagram text-2xl"></i></a>
+                            {% elif link.name == 'facebook' %}
+                                <a href={{ link.url }} target="_blank"><i class="fa-brands fa-facebook text-2xl"></i></a>
+                            {% elif link.name == 'youtube' %}
+                                <a href={{ link.url }} target="_blank"><i class="fa-brands fa-youtube text-xl"></i></a>
+                            {% elif link.name == 'twitter' %}
+                                <a href={{ link.url }} target="_blank"><i class="fa-brands fa-x-twitter text-xl"></i></a>
+                            {% elif link.name == 'email' %}
+                                <a href={{ link.url }} target="_blank"><i class="fa-regular fa-envelope text-xl"></i></a>
+                            {% elif link.name == 'website' %}
+                                <a href={{ link.url }} target="_blank"><i class="fa-solid fa-link text-xl"></a>
+                            {% endif %}
+                        </button>
+                    {% endfor %}
+                {% endif %}
+            </div>
+
+
+            <!-- Category and Link Container -->
+            <div class="w-full">
+                <!-- Category -->
+                <div class="flex flex-col gap-2">
+                    {% for category in profile.categories %}
+                        {% if not category.is_hidden %}
+                            <div class="relative w-full mt-6 lg:mt-8">
+                                <h2 class="text-lg text-center text-gray-900 mb-4 font-medium tracking-wide">{{ category.title }}</h2>
+                                <div class="flex flex-col gap-2">
+                                    {% for link in category.categorized_links.all %}
+                                        {% if not link.is_hidden %}
+                                            <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer" 
+                                                onclick="updateClickCount({{ link.id }})"
+                                                class="flex items-center py-4 px-6 mb-2 bg-white rounded-xl shadow-sm hover:shadow transition-shadow hover:bg-primary-200">
+                                                <div class="flex-1">
+                                                    <h3 class="text-base font-medium text-gray-900">
+                                                        {{ link.title }}
+                                                    </h3>
+                                                </div>
+                                            </a>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                    
+                <!-- Active Uncategorized Links -->
+                <div class="relative w-full mt-6 lg:mt-8 flex flex-col gap-2">
+                    {% for link in profile.active_uncategorized_links %}
+                        {% if not link.is_hidden %}
+                            <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer" 
+                                onclick="updateClickCount({{ link.id }})"
+                                class="flex items-center py-4 px-6 mb-2 bg-white rounded-xl shadow-sm hover:shadow transition-shadow hover:bg-primary-100">
+                                <div class="flex-1">
+                                    <h3 class="text-base font-medium text-gray-900">
+                                        {{ link.title }}
+                                    </h3>
+                                </div>
+                            </a>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </main>
+    </section>
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script>
+function updateClickCount(linkId) {
+    fetch(`{% url 'landing:update_link_click_count' 0 %}`.replace('0', linkId), {
+        method: 'POST'
+    }).catch(error => console.error('Error:', error));
+}
+</script>
+{% endblock %}

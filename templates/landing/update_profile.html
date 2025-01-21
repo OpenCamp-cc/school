@@ -1,0 +1,221 @@
+{% extends 'partials/anonymous_base.html' %}
+{% load static %}
+
+{% block bgcolor %}bg-primary-50{% endblock %}
+
+{% block content %}
+<div class="w-full pb-12 lg:pb-0 lg:min-h-screen">
+    <!-- Main Content -->
+    <main class="container mx-auto max-w-xl px-4">
+        <!-- Back Button -->
+        <div class="py-4">
+            <a href="{% url 'landing:profile_admin' %}" 
+               class="inline-flex items-center text-gray-600 hover:text-gray-900">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+                Back to admin
+            </a>
+        </div>
+
+        <div class="py-4 lg:py-8">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" name="name" value="{{ profile.name }}" />
+
+                <!-- Avatar with Edit Button -->
+                <div class="relative max-w-lg w-full mb-8">
+                    <div class="flex justify-center">
+                        <div class="relative">
+                            <div class="w-24 h-24 rounded-full overflow-visible flex">
+                                {% if profile.profile_image %}
+                                    <img id="profile_image_preview" src="{{ profile.profile_image.url }}" alt="Profile" class="w-full h-full rounded-full object-cover">
+                                {% else %}
+                                    <div id="profile_image_default" class="w-full h-24 rounded-full flex items-center justify-center bg-black text-white text-3xl font-semibold">
+                                        {{ profile.name|first }}
+                                    </div>
+                                {% endif %}
+                                <button type="button" 
+                                        onclick="document.getElementById('profile_image_input').click()"
+                                        class="absolute -right-2 -bottom-2 bg-white rounded-full p-1.5 border border-gray-200 flex items-center justify-center w-7 h-7">
+                                    <svg class="w-4 h-4 text-gray-600" fill="none" viewBox="0 0 24 24">
+                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                    </svg>
+                                </button>
+                                <input id="profile_image_input" type="file" name="profile_image" accept="image/*" class="hidden">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bio -->
+                <div class="relative max-w-lg w-full mb-8">
+                    <div class="rounded-lg border-2 border-gray-300 bg-white p-2">
+                        <textarea 
+                            name="bio"
+                            placeholder="Bio"
+                            rows="3"
+                            class="w-full border-none bg-transparent px-4 text-gray-900 placeholder-gray-500 outline-none focus:outline-none focus:ring-0"
+                        >{{ form.bio.value|default:'' }}</textarea>
+                    </div>
+                </div>
+
+                <!-- Links -->
+                <div class="relative max-w-lg w-full">
+                    <h2 class="text-base lg:text-xl font-semibold mb-4">Add your own links</h2>
+                    <div class="space-y-3">
+                        <!-- Instagram -->
+                        <div class="flex items-center p-2 lg:p-3">
+                            <img src="{% static 'img/brands/instagram.svg' %}" class="w-10 lg:w-12 h-10 lg:h-12 rounded-xl" alt="Instagram">
+                            <input 
+                                name="instagram_url"
+                                type="url" 
+                                value="{{ form.instagram_url.value|default:'' }}"
+                                placeholder="Instagram URL"
+                                class="flex-1 ml-3 bg-gray-50 rounded-lg p-2 lg:p-3 text-sm lg:text-base text-gray-900 placeholder-gray-500 border-2 border-transparent focus:border-gray-600 focus:ring-0"
+                            >
+                        </div>
+
+                        <!-- Threads -->
+                        <div class="flex items-center p-2 lg:p-3">
+                            <img src="{% static 'img/brands/threads.svg' %}" class="w-10 lg:w-12 h-10 lg:h-12 rounded-xl" alt="Threads">
+                            <input 
+                                name="threads_url"
+                                type="url" 
+                                value="{{ form.threads_url.value|default:'' }}"
+                                placeholder="Threads URL"
+                                class="flex-1 ml-3 bg-gray-50 rounded-lg p-2 lg:p-3 text-sm lg:text-base text-gray-900 placeholder-gray-500 border-2 border-transparent focus:border-gray-600 focus:ring-0"
+                            >
+                        </div>
+
+                        <!-- Facebook -->
+                        <div class="flex items-center p-2 lg:p-3">
+                            <img src="{% static 'img/brands/facebook.svg' %}" class="w-10 lg:w-12 h-10 lg:h-12 rounded-xl" alt="Facebook">
+                            <input 
+                                name="facebook_url"
+                                type="url" 
+                                value="{{ form.facebook_url.value|default:'' }}"
+                                placeholder="Facebook profile URL"
+                                class="flex-1 ml-3 bg-gray-50 rounded-lg p-2 lg:p-3 text-sm lg:text-base text-gray-900 placeholder-gray-500 border-2 border-transparent focus:border-gray-600 focus:ring-0"
+                            >
+                        </div>
+
+                        <!-- YouTube -->
+                        <div class="flex items-center p-2 lg:p-3">
+                            <img src="{% static 'img/brands/youtube.svg' %}" class="w-10 lg:w-12 h-10 lg:h-12 rounded-xl" alt="YouTube">
+                            <input 
+                                name="youtube_url"
+                                type="url" 
+                                value="{{ form.youtube_url.value|default:'' }}"
+                                placeholder="YouTube channel URL"
+                                class="flex-1 ml-3 bg-gray-50 rounded-lg p-2 lg:p-3 text-sm lg:text-base text-gray-900 placeholder-gray-500 border-2 border-transparent focus:border-gray-600 focus:ring-0"
+                            >
+                        </div>
+
+                        <!-- Twitter -->
+                        <div class="flex items-center p-2 lg:p-3">
+                            <img src="{% static 'img/brands/twitter.svg' %}" class="w-10 lg:w-12 h-10 lg:h-12 rounded-xl" alt="Twitter">
+                            <input 
+                                name="twitter_url"
+                                type="url" 
+                                value="{{ form.twitter_url.value|default:'' }}"
+                                placeholder="Twitter profile URL"
+                                class="flex-1 ml-3 bg-gray-50 rounded-lg p-2 lg:p-3 text-sm lg:text-base text-gray-900 placeholder-gray-500 border-2 border-transparent focus:border-gray-600 focus:ring-0"
+                            >
+                        </div>
+
+                        <!-- Email -->
+                        <div class="flex items-center p-2 lg:p-3">
+                            <div class="w-10 lg:w-12 h-10 lg:h-12 rounded-xl bg-gray-600 flex items-center justify-center">
+                                <i class="fa-regular fa-envelope text-xl lg:text-2xl text-white"></i>
+                            </div>
+                            <input 
+                                name="email_url"
+                                type="email" 
+                                value="{{ form.email_url.value|default:'' }}"
+                                placeholder="Email URL"
+                                class="flex-1 ml-3 bg-gray-50 rounded-lg p-2 lg:p-3 text-sm lg:text-base text-gray-900 placeholder-gray-500 border-2 border-transparent focus:border-gray-600 focus:ring-0"
+                            >
+                        </div>
+
+                        <!-- Website -->
+                        <div class="flex items-center p-2 lg:p-3">
+                            <div class="w-10 lg:w-12 h-10 lg:h-12 rounded-xl bg-gray-200 flex items-center justify-center">
+                                <i class="fa-solid fa-link text-xl lg:text-2xl text-gray-600"></i>
+                            </div>
+                            <input 
+                                name="website_url"
+                                type="url" 
+                                value="{{ form.website_url.value|default:'' }}"
+                                placeholder="Website URL"
+                                class="flex-1 ml-3 bg-gray-50 rounded-lg p-2 lg:p-3 text-sm lg:text-base text-gray-900 placeholder-gray-500 border-2 border-transparent focus:border-gray-600 focus:ring-0"
+                            >
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Save Button -->
+                <div class="relative max-w-lg w-full">
+                    <button type="submit" 
+                        class="w-full rounded-full mt-8 bg-purple-600 py-3 text-white font-semibold text-center transition duration-200 hover:bg-purple-700 focus:ring-2 focus:ring-offset-2 focus:ring-purple-600">
+                        Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block end_javascript %}
+<!-- update profile image -->
+<script>
+document.getElementById('profile_image_input').addEventListener('change', function(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const formData = new FormData();
+        formData.append('profile_image', file);
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+        // Send to server
+        fetch('{% url "landing:update_profile_image" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.is_successful) {
+                // Update image preview
+                const imagePreview = document.getElementById('profile_image_preview');
+                const defaultImage = document.getElementById('profile_image_default');
+                
+                if (imagePreview) {
+                    imagePreview.src = data.url;
+                } else {
+                    // Create new image element if it doesn't exist
+                    const newImage = document.createElement('img');
+                    newImage.id = 'profile_image_preview';
+                    newImage.src = data.url;
+                    newImage.alt = 'Profile';
+                    newImage.className = 'w-full h-full rounded-full object-cover';
+                    
+                    // Replace default div with new image
+                    if (defaultImage) {
+                        defaultImage.replaceWith(newImage);
+                    }
+                }
+            } else {
+                alert(data.message || 'Error uploading image');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error uploading image');
+        });
+    }
+});
+</script>
+{% endblock %}

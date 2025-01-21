@@ -1,0 +1,97 @@
+{% extends 'partials/anonymous_base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="bg-primary-50 min-h-screen p-4 md:p-8">
+    <!-- Search Header -->
+    <div class="max-w-7xl mx-auto mb-8">
+        <h1 class="text-3xl font-bold text-slate-800 mb-4">Find Your Perfect Language Course</h1>
+        <p class="text-primary-800">Browse through our available classes and find the one that matches your learning goals.</p>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="max-w-7xl mx-auto bg-white rounded-xl shadow-lg p-6 mb-8">
+        <form class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+                <label class="block text-primary-800 mb-2" for="language">Language</label>
+                <select id="language" class="w-full px-4 py-2 rounded-lg border border-primary-200 focus:outline-none focus:border-primary-600">
+                    <option value="">All Languages</option>
+                    <option>Spanish</option>
+                    <option>French</option>
+                    <option>German</option>
+                    <option>Japanese</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-primary-800 mb-2" for="start-date">Start Date</label>
+                <input type="date" id="start-date" class="w-full px-4 py-2 rounded-lg border border-primary-200 focus:outline-none focus:border-primary-600">
+            </div>
+            <div>
+                <label class="block text-primary-800 mb-2" for="course-name">Course Name</label>
+                <input type="text" id="course-name" placeholder="Search courses..." class="w-full px-4 py-2 rounded-lg border border-primary-200 focus:outline-none focus:border-primary-600">
+            </div>
+            <div class="flex items-end">
+                <button class="w-full bg-primary-500 text-white py-2 rounded-lg hover:bg-primary-600 transition-colors">
+                    Search Classes
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Results Section -->
+    <div class="max-w-7xl mx-auto">
+        <!-- Results Count -->
+        <div class="flex justify-between items-center mb-6">
+            <p class="text-primary-800"><span class="font-bold">15</span> courses found</p>
+            <div class="flex flex-row gap-x-2 items-center">
+                <span>Sort by:</span>
+                <select class="rounded-lg border border-primary-200 focus:outline-none focus:border-primary-600">
+                    <option>Featured</option>
+                    <option>Price: Low to High</option>
+                    <option>Price: High to Low</option>
+                    <option>Start Date</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Course Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Course Card (repeated for each course) -->
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                <div class="h-48 bg-primary-100 flex items-center justify-center">
+                    <span class="text-slate-800 font-semibold">Course Image</span>
+                </div>
+                <div class="p-6">
+                    <div class="flex items-center gap-2 mb-4">
+                        <span class="bg-primary-100 text-primary-800 px-3 py-1 rounded-full text-sm">Live Cohort</span>
+                        <span class="bg-primary-100 text-primary-800 px-3 py-1 rounded-full text-sm">Spanish</span>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-2">Spanish for Beginners</h3>
+                    <p class="text-slate-800 mb-4">8-week intensive course with live instructor-led sessions.</p>
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm text-primary-800">Starts:</span>
+                            <span class="font-medium text-primary-800">June 1, 2024</span>
+                        </div>
+                        <span class="font-bold text-primary-700">$299</span>
+                    </div>
+                    <button class="w-full bg-primary-500 text-white py-2 rounded-lg hover:bg-primary-600 transition-colors">
+                        View Details
+                    </button>
+                </div>
+            </div>
+
+            <!-- Additional course cards would be rendered here -->
+        </div>
+
+        <!-- Pagination -->
+        <div class="flex justify-center mt-8 gap-2">
+            <button class="px-4 py-2 rounded-lg border border-primary-200 text-primary-800 hover:bg-primary-50">Previous</button>
+            <button class="px-4 py-2 rounded-lg bg-primary-500 text-white">1</button>
+            <button class="px-4 py-2 rounded-lg border border-primary-200 text-primary-800 hover:bg-primary-50">2</button>
+            <button class="px-4 py-2 rounded-lg border border-primary-200 text-primary-800 hover:bg-primary-50">3</button>
+            <button class="px-4 py-2 rounded-lg border border-primary-200 text-primary-800 hover:bg-primary-50">Next</button>
+        </div>
+    </div>
+</div>
+{% endblock %}

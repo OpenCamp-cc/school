@@ -1,0 +1,904 @@
+{% extends 'partials/anonymous_base.html' %}
+{% load static %}
+
+{% block bgcolor %}bg-primary-50{% endblock %}
+
+{% block content %}
+<div class="w-full pb-4 lg:pb-0 lg:min-h-screen">
+    <!-- Main Content -->
+    <main class="container mx-auto max-w-2xl px-4">
+        <div class="py-4 lg:py-8">            
+            <!-- Profile Info Form -->
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" name="name" value="{{ profile.name }}" />
+                <div class="w-full bg-transparent rounded-lg mb-6 lg:mb-8">
+                    <div class="flex items-center justify-between w-full">
+                        <!-- Avatar -->
+                        <div class="w-14 lg:w-16 h-14 lg:h-16 rounded-full overflow-hidden">
+                            {% if profile.profile_image %}
+                                <img src="{{ profile.profile_image.url }}" alt="Profile" class="w-full h-full rounded-full object-cover">
+                            {% else %}
+                                <div class="w-full h-full rounded-full flex items-center justify-center bg-black text-white text-xl lg:text-2xl font-semibold">
+                                    {{ profile.name|first }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Profile Name and Bio -->
+                        <div class="flex-1 ml-4">
+                            <div class="flex flex-col">
+                                <span class="text-base lg:text-lg font-semibold w-fit cursor-pointer" onclick="openNameModal()">
+                                    {{ profile.name }}
+                                </span>
+                                <p class="text-gray-600 text-sm lg:text-base w-fit cursor-pointer" onclick="openNameModal()">
+                                    {{ profile.bio|default:'' }}
+                                </p>
+                                <!-- Social Links -->
+                                <div class="flex gap-3 mt-4">
+                                    {% if  active_links %}
+                                        {% for link in active_links %}
+                                            <button type="button" class="hover:opacity-80" onclick="openSocialModal()">
+                                                {% if link.name == 'threads' %}
+                                                    <i class="fa-brands fa-threads text-2xl"></i>
+                                                {% elif link.name == 'instagram' %}
+                                                    <i class="fa-brands fa-instagram text-2xl"></i>
+                                                {% elif link.name == 'facebook' %}
+                                                    <i class="fa-brands fa-facebook-f"></i>
+                                                {% elif link.name == 'youtube' %}
+                                                    <i class="fa-brands fa-youtube text-xl"></i>
+                                                {% elif link.name == 'twitter' %}
+                                                    <i class="fa-brands fa-x-twitter text-xl"></i>
+                                                {% elif link.name == 'email' %}
+                                                    <i class="fa-regular fa-envelope text-xl"></i>
+                                                {% elif link.name == 'website' %}
+                                                    <i class="fa-solid fa-link text-xl"></i>
+                                                {% endif %}
+                                            </button>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Preview and Share Button -->
+                         <button type="button" class="rounded-full w-8 lg:w-10 h-8 lg:h-10 flex items-center justify-center">
+                            <a href="{% url 'landing:profile' %}" target="_blank">
+                                <i class="fa-regular fa-eye"></i>
+                            </a>
+                        </button>
+                        <button type="button" 
+                            onclick="shareProfile()"
+                            class="rounded-full w-8 lg:w-10 h-8 lg:h-10 flex items-center justify-center">
+                            <i class="fa-solid fa-arrow-up-from-bracket text-sm lg:text-base"></i>
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Create Link -->
+            <div class="w-full mb-6 lg:mb-8">
+                <button type="button" onclick="openLinkModal()"
+                        class="w-full bg-primary-600 text-white rounded-xl py-2.5 lg:py-3 flex items-center justify-center gap-2 hover:bg-primary-500 transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-primary-600">
+                    <i class="fa-solid fa-plus"></i>
+                    <span class="font-semibold text-sm lg:text-base">Add Link</span>
+                </button>
+            </div>
+
+            <!-- Category and Archived Link Control -->
+            <div class="flex justify-between w-full mt-6 lg:mt-8">
+                <form method="POST" action="{% url 'landing:create_profile_category' %}"> {% csrf_token %}
+                    <button type="submit"
+                            class="bg-transparent border-2 cursor-pointer text-gray-500 rounded-full px-4 py-2 hover:font-medium hover:shadow transition-shadow">
+                        <i class="fa-solid fa-box-archive text-gray-400 mr-1"></i> Add collection
+                    </button>
+                </form>
+                <button class="bg-transparent text-gray-500 px-4 py-2 hover:font-medium" id="viewArchiveBtn">
+                    <i class="fa-solid fa-chevron-right mr-1" id="archiveIcon"></i> 
+                    <span id="archiveText">View archive</span>
+                </button>
+            </div>
+
+            <!-- Archive Links -->
+            <div class="relative w-full mt-6 lg:mt-8 flex flex-col gap-2 hidden opacity-0 -translate-y-5 transition-all duration-1000 ease-in-out" id="archiveSection">
+                {% if profile.archived_links %}
+                    {% for link in profile.archived_links %}
+                        <div class="flex items-center py-4 px-6 mb-2 bg-white rounded-xl shadow-sm hover:shadow transition-shadow">
+                            <div class="flex-1 w-4/5">
+                                <h3 class="text-base font-medium text-gray-500">{{ link.title }}</h3>
+                                <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer" class="text-sm text-gray-500 hover:text-gray-700 max-w-11/12 truncate block">
+                                    {{ link.url }}
+                                </a>
+                            </div>
+                            <div class="flex items-center justify-end gap-2 lg:gap-3 w-1/5">
+                                <form method="POST" action="{% url 'landing:restore_link' link.id %}"
+                                    onsubmit="return confirm('Restore this link to your profile?')">
+                                    {% csrf_token %}
+                                    <button type="submit" 
+                                            class="text-gray-400 hover:text-valencia-900 transition-colors p-1">
+                                        <i class="fa-regular fa-window-restore text-lg"></i>
+                                    </button>
+                                </form>
+                                <form method="POST" action="{% url 'landing:delete_link' link.id %}"
+                                    onsubmit="return confirm('Permanently delete this link and its analytics data?')">
+                                    {% csrf_token %}
+                                    <button type="submit" 
+                                            class="text-gray-400 hover:text-valencia-900 transition-colors p-1">
+                                        <i class="fa-regular fa-trash-can text-lg"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="flex items-center justify-center py-4 px-6 mb-2 bg-white rounded-xl">
+                        <p class="text-gray-500">No archived links</p>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- Category and Link Container -->
+            <div class="transition-all duration-1000 ease-in-out" id="categoryLinkContainer">
+                <!-- Category Ordering Form -->
+                <form id="categoryOrderingForm" method="POST" action="{% url 'landing:update_categories_order' %}">
+                    {% csrf_token %}
+                    <input type="hidden" id="categoryOrderingInput" name="ordering">
+                </form>
+
+                <!-- Category -->
+                 <div id="sortableCategories" class="flex flex-col gap-2">
+                    {% for category in profile.categories %}
+                        <div class="category-container relative w-full mt-6 lg:mt-8 bg-gray-50 rounded-2xl border transition-all duration-200" data-id="{{ category.id }}">
+                            <div class="w-full flex items-center justify-between gap-2 py-4 px-6">
+                                <button type="button" class="text-gray-400 flex gap-[2px] drag-handle" style="cursor: grab">
+                                    <i class="fa-solid fa-ellipsis-vertical"></i>
+                                    <i class="fa-solid fa-ellipsis-vertical"></i>
+                                </button>
+                                
+                                <div class="px-4 pb-4 flex flex-col items-center text-md">
+                                    <h2 class="font-medium text-gray-900 flex items-center gap-2">
+                                        <button type="button" class="category-edit-{{ category.id }} cursor-pointer" 
+                                                onclick="toggleTitleEdit({{ category.id }})">
+                                            <span class="category-title-{{ category.id }}">
+                                                {{ category.title|default:"Add collection title" }}
+                                            </span>
+                                        </button>
+                                        <form method="POST" 
+                                            action="{% url 'landing:update_profile_category' category.id %}" 
+                                            class="hidden category-form-{{ category.id }}"> 
+                                            {% csrf_token %}
+                                            <input type="text" name="title" maxlength="64" 
+                                                class="category-title-input border-none bg-transparent rounded px-2 py-1 focus:outline-none focus:ring-0" 
+                                                value="{{ category.title|default:"" }}" />
+                                        </form>
+                                        <button type="button" class="category-edit-{{ category.id }} cursor-pointer" 
+                                                onclick="toggleTitleEdit({{ category.id }})">
+                                            <i class="fa-regular fa-pen-to-square text-gray-400"></i>
+                                        </button>
+                                    </h2>
+                                    <p class="text-gray-500 mt-1 text-sm">{{ category.categorized_links.count }} links</p>
+                                </div>
+
+                                <div class="flex items-center gap-2 lg:gap-3">
+                                    <form method="POST" action="{% url 'landing:toggle_category_visibility' category.id %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="is_hidden" value="{{ category.is_hidden|yesno:"false,true" }}">
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" 
+                                                {% if not category.is_hidden %}checked{% endif %} 
+                                                class="sr-only peer"
+                                                onclick="this.form.submit()"
+                                            >
+                                            <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-0 peer-focus:outline-none peer-checked:after:translate-x-full peer-checked:bg-primary-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all">
+                                            </div>
+                                        </label>
+                                    </form>
+                                    <form method="POST" action="{% url 'landing:delete_category' category.id %}" 
+                                        onsubmit="return confirm('Do you want to archive all these links? Moving this collection to your archive will permanently delete it, and all links within it will be transferred to your archive.')">
+                                        {% csrf_token %}
+                                        <button type="submit" 
+                                                class="text-gray-400 hover:text-valencia-900 transition-colors p-1">
+                                            <i class="fa-regular fa-trash-can text-lg"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <div class="category-links flex flex-col gap-2 p-4">
+                                {% if category.categorized_links.exists %}
+                                    {% for link in category.categorized_links.all %}
+                                        <div class="flex items-center py-4 px-6 mb-2 bg-white rounded-xl shadow-sm hover:shadow transition-shadow" data-id="{{ link.id }}">
+                                            <button type="button" class="text-gray-400 mr-4 flex gap-[2px] cursor-move drag-handle" style="cursor: grab">
+                                                <i class="fa-solid fa-ellipsis-vertical"></i>
+                                                <i class="fa-solid fa-ellipsis-vertical"></i>
+                                            </button>
+                                            <div class="flex-1 w-4/5 gap-1">
+                                                <h3 class="text-base font-medium text-gray-900">
+                                                    {{ link.title }}
+                                                    <span class="text-xs text-gray-500 ml-1 cursor-pointer" 
+                                                            onclick="openEditLinkModal({{ link.id }}, '{{ link.title }}', '{{ link.url }}')">
+                                                        <i class="fa-regular fa-pen-to-square"></i>
+                                                    </span>
+                                                </h3>
+                                                <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer" class="text-sm text-gray-500 hover:text-gray-700 max-w-11/12 truncate block">
+                                                    {{ link.url }}
+                                                </a>
+                                                <p class="text-sm text-gray-400">click: {{ link.click_count }}</p>
+                                            </div>
+                                            <div class="flex items-center justify-end gap-2 lg:gap-3 w-1/5">
+                                                <form method="POST" action="{% url 'landing:toggle_link_visibility' link.id %}">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="is_hidden" value="{{ link.is_hidden|yesno:"false,true" }}">
+                                                    <label class="relative inline-flex items-center cursor-pointer">
+                                                        <input type="checkbox" 
+                                                            {% if not link.is_hidden %}checked{% endif %} 
+                                                            class="sr-only peer focus:outline-none focus:ring-0"
+                                                            onclick="this.form.submit()"
+                                                        >
+                                                        <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-0 peer-focus:outline-none peer-checked:after:translate-x-full peer-checked:bg-primary-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all">
+                                                        </div>
+                                                    </label>
+                                                </form>
+                                                <form method="POST" action="{% url 'landing:archive_link' link.id %}"
+                                                    onsubmit="return confirm('Are you sure you want to archive this link?')">
+                                                    {% csrf_token %}
+                                                    <button type="submit" 
+                                                            class="text-gray-400 hover:text-valencia-900 transition-colors p-1">
+                                                        <i class="fa-solid fa-inbox text-lg"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="bg-blue-50 rounded-xl p-2 mx-3 my-4 flex items-center justify-center gap-4">
+                                        <i class="fa-regular fa-copy text-gray-400"></i>
+                                        <p class="text-gray-900">Drag and drop links into this collection. You can reorder links after they are added.</p>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                    
+                <!-- Active Links -->
+                <div class="relative w-full mt-6 lg:mt-8 flex flex-col gap-2">
+                    <form id="linkOrderingForm" method="POST" action="{% url 'landing:update_links_order' %}">
+                        {% csrf_token %}
+                        <input type="hidden" id="linkOrderingInput" name="ordering">
+                    </form>
+
+                    <div id="sortableLinks" class="flex flex-col gap-2">
+                        {% for link in profile.active_uncategorized_links %}
+                            <div class="flex items-center py-4 px-6 mb-2 bg-white rounded-xl shadow-sm hover:shadow transition-shadow" data-id="{{ link.id }}">
+                                <button type="button" class="text-gray-400 mr-4 flex gap-[2px] cursor-move drag-handle" style="cursor: grab">
+                                    <i class="fa-solid fa-ellipsis-vertical"></i>
+                                    <i class="fa-solid fa-ellipsis-vertical"></i>
+                                </button>
+                                <div class="flex-1 w-4/5 gap-1">
+                                    <h3 class="text-base font-medium text-gray-900">
+                                        {{ link.title }}
+                                        <span class="text-xs text-gray-500 ml-1 cursor-pointer" 
+                                                onclick="openEditLinkModal({{ link.id }}, '{{ link.title }}', '{{ link.url }}')">
+                                            <i class="fa-regular fa-pen-to-square"></i>
+                                        </span>
+                                    </h3>
+                                    <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer" class="text-sm text-gray-500 hover:text-gray-700 max-w-11/12 truncate block">
+                                        {{ link.url }}
+                                    </a>
+                                    <p class="text-sm text-gray-400">click: {{ link.click_count }}</p>
+                                </div>
+                                <div class="flex items-center justify-end gap-2 lg:gap-3 w-1/5">
+                                    <form method="POST" action="{% url 'landing:toggle_link_visibility' link.id %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="is_hidden" value="{{ link.is_hidden|yesno:"false,true" }}">
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" 
+                                                {% if not link.is_hidden %}checked{% endif %} 
+                                                class="sr-only peer focus:outline-none focus:ring-0"
+                                                onclick="this.form.submit()"
+                                            >
+                                            <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-0 peer-focus:outline-none peer-checked:after:translate-x-full peer-checked:bg-primary-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all">
+                                            </div>
+                                        </label>
+                                    </form>
+                                    <form method="POST" action="{% url 'landing:archive_link' link.id %}"
+                                        onsubmit="return confirm('Are you sure you want to archive this link?')">
+                                        {% csrf_token %}
+                                        <button type="submit" 
+                                                class="text-gray-400 hover:text-valencia-900 transition-colors p-1">
+                                            <i class="fa-solid fa-inbox text-lg"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Modal backdrop -->
+<div id="modalBackdrop" class="fixed inset-0 bg-black/50 z-40 hidden"></div>
+
+<!-- Name and Bio Modal container -->
+<div id="nameModalContainer" class="fixed inset-0 flex items-center justify-center z-50 pointer-events-none hidden transition-opacity duration-300">
+    <div class="w-full max-w-lg mx-4 bg-white rounded-lg shadow-xl pointer-events-auto">
+        <!-- Modal header -->
+        <div class="flex items-center gap-4 p-4 border-b border-gray-200">
+            <div class="w-8"></div>
+            <h2 class="text-black text-md font-semibold flex-1 text-center">Display name and bio</h2>
+            <button onclick="closeModal()" class="p-2 hover:bg-gray-100 rounded-sm focus:outline-none focus:ring-2 focus:ring-black">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- Modal body -->
+        <div class="p-4">
+            <form id="nameForm" method="POST" action="{% url 'landing:profile_admin' %}">
+                {% csrf_token %}
+                
+                <!-- Profile Title -->
+                <div class="mb-4">
+                    <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                    <input 
+                        type="text" 
+                        id="name"
+                        name="name" 
+                        value="{{ profile.name }}"
+                        maxlength="32"
+                        class="w-full p-3 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-900 focus:border-transparent"
+                    >
+                </div>
+
+                <!-- Bio -->
+                <div class="mb-4">
+                    <label for="bio" class="block text-sm font-medium text-gray-700 mb-1">Bio</label>
+                    <textarea 
+                        id="bio"
+                        name="bio" 
+                        maxlength="128"
+                        rows="4"
+                        class="w-full p-3 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-900 focus:border-transparent resize-none"
+                    >{{ profile.bio }}</textarea>
+                    <div class="text-right mt-1">
+                        <span id="bioCounter" class="text-sm text-gray-500">0/80</span>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Modal footer -->
+        <div class="p-4 flex flex-col sm:flex-row-reverse gap-4 border-t border-gray-200">
+            <button type="submit" form="nameForm" class="w-full h-10 px-4 rounded-lg bg-primary-600 text-white hover:bg-primary-800 transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-primary-900">
+                <span class="font-semibold">Save</span>
+            </button>
+            <button type="button" onclick="closeModal()" class="w-full h-10 px-4 rounded-lg bg-white border border-gray-200 text-black hover:bg-gray-50 transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-black">
+                <span class="font-semibold">Cancel</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Social Modal container -->
+<div id="socialModalContainer" class="fixed inset-0 flex items-center justify-center z-50 pointer-events-none hidden transition-opacity duration-300">
+    <div class="w-full max-w-lg mx-4 bg-white rounded-lg shadow-xl pointer-events-auto">
+        <!-- Modal header -->
+        <div class="flex items-center gap-4 p-4 border-b border-gray-200">
+            <div class="w-8"></div>
+            <h2 class="text-black text-md font-semibold flex-1 text-center">Add social icon</h2>
+            <button onclick="closeModal()" class="p-2 hover:bg-gray-100 rounded-sm focus:outline-none focus:ring-2 focus:ring-black">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- Modal body -->
+        <div class="p-4">
+            <form id="socialLinksForm" method="POST" action="{% url 'landing:profile_admin' %}">
+                {% csrf_token %}
+                <!-- Threads -->
+                <div class="flex items-center space-x-3 p-3 mb-0 rounded-lg">
+                    <div class="w-10 h-10 flex items-center justify-center rounded-xl">
+                        <i class="fa-brands fa-threads text-2xl text-gray-600"></i>
+                    </div>
+                    <input 
+                        type="url" 
+                        name="threads_url" 
+                        placeholder="Threads URL"
+                        value="{{ form.threads_url.value|default:'' }}"
+                        class="flex-1 bg-white rounded-lg p-2 text-sm text-gray-900 border border-gray-200"
+                    >
+                </div>
+                <!-- Instagram -->
+                <div class="flex items-center space-x-3 p-3 mb-0 rounded-lg">
+                    <div class="w-10 h-10 flex items-center justify-center rounded-xl">
+                        <i class="fa-brands fa-instagram text-2xl text-gray-600"></i>
+                    </div>
+                    <input 
+                        type="url" 
+                        name="instagram_url" 
+                        value="{{ form.instagram_url.value|default:'' }}"
+                        placeholder="Instagram URL"
+                        class="flex-1 bg-white rounded-lg p-2 text-sm text-gray-900 border border-gray-200"
+                    >
+                </div>
+                <!-- Facebook -->
+                <div class="flex items-center space-x-3 p-3 mb-0 rounded-lg">
+                    <div class="w-10 h-10 flex items-center justify-center rounded-xl">
+                        <i class="fa-brands fa-facebook text-2xl text-gray-600"></i>
+                    </div>
+                    <input 
+                        type="url" 
+                        name="facebook_url" 
+                        value="{{ form.facebook_url.value|default:'' }}"
+                        placeholder="Facebook profile URL"
+                        class="flex-1 bg-white rounded-lg p-2 text-sm text-gray-900 border border-gray-200"
+                    >
+                </div>
+                <!-- YouTube -->
+                <div class="flex items-center space-x-3 p-3 mb-0 rounded-lg">
+                    <div class="w-10 h-10 flex items-center justify-center rounded-xl">
+                        <i class="fa-brands fa-youtube text-2xl text-gray-600"></i>
+                    </div>
+                    <input 
+                        type="url" 
+                        name="youtube_url" 
+                        value="{{ form.youtube_url.value|default:'' }}"
+                        placeholder="YouTube channel URL"
+                        class="flex-1 bg-white rounded-lg p-2 text-sm text-gray-900 border border-gray-200"
+                    >
+                </div>
+
+                <!-- X -->
+                <div class="flex items-center space-x-3 p-3 mb-0 rounded-lg">
+                    <div class="w-10 h-10 flex items-center justify-center rounded-xl">
+                        <i class="fa-brands fa-x-twitter text-2xl text-gray-600"></i>
+                    </div>
+                    <input 
+                        type="url" 
+                        name="twitter_url" 
+                        value="{{ form.twitter_url.value|default:'' }}"
+                        placeholder="X profile URL"
+                        class="flex-1 bg-white rounded-lg p-2 text-sm text-gray-900 border border-gray-200"
+                    >
+                </div>
+                <!-- Email -->
+                <div class="flex items-center space-x-3 p-3 mb-0 rounded-lg">
+                    <div class="w-10 h-10 flex items-center justify-center rounded-xl">
+                        <i class="fa-regular fa-envelope text-2xl text-gray-600"></i>
+                    </div>
+                    <input 
+                        type="email" 
+                        name="email_url" 
+                        value="{{ form.email_url.value|default:'' }}"
+                        placeholder="Email URL"
+                        class="flex-1 bg-white rounded-lg p-2 text-sm text-gray-900 border border-gray-200"
+                    >
+                </div>
+                <!-- Website -->
+                <div class="flex items-center space-x-3 p-3 mb-0 rounded-lg">
+                    <div class="w-10 h-10 flex items-center justify-center rounded-xl">
+                        <i class="fa-solid fa-link text-xl lg:text-2xl text-gray-600"></i>
+                    </div>
+                    <input 
+                        type="url" 
+                        name="website_url" 
+                        value="{{ form.website_url.value|default:'' }}"
+                        placeholder="Website URL"
+                        class="flex-1 bg-white rounded-lg p-2 text-sm text-gray-900 border border-gray-200"
+                    >
+                </div>
+            </form>
+        </div>
+
+        <!-- Modal footer -->
+        <div class="p-4 flex flex-col sm:flex-row-reverse gap-4">
+            <button type="submit" form="socialLinksForm" class="w-full h-10 px-4 rounded-xl bg-primary-600 text-white hover:bg-primary-800 transition-colors focus:ring-2 focus:ring-offset-2 focus:bg-primary-900">
+                <span class="font-semibold">Save</span>
+            </button>
+            <button type="button" onclick="closeModal()" class="w-full h-10 px-4 rounded-lg bg-white border border-gray-200 text-black hover:bg-gray-50 transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-black">
+                <span class="font-semibold">Cancel</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Link Modal container -->
+<div id="linkModalContainer" class="fixed inset-0 flex items-center justify-center z-50 pointer-events-none hidden transition-opacity duration-300">
+    <div class="w-full max-w-lg mx-4 bg-white rounded-lg shadow-xl pointer-events-auto">
+        <!-- Modal header -->
+        <div class="flex items-center gap-4 p-4 border-b border-gray-200">
+            <div class="w-8"></div>
+            <h2 class="text-black text-md font-semibold flex-1 text-center">Add New Link</h2>
+            <button onclick="closeModal()" class="p-2 hover:bg-gray-100 rounded-sm focus:outline-none focus:ring-2 focus:ring-black">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- Modal body -->
+        <div class="p-4">
+            <form id="linkForm" method="POST" action="{% url 'landing:create_profile_link' %}">
+                {% csrf_token %}
+                
+                <!-- Link Title -->
+                <div class="mb-4">
+                    <label for="title" class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                    <input 
+                        type="text" 
+                        id="title"
+                        name="title" 
+                        required
+                        maxlength="64"
+                        placeholder="e.g., Blog"
+                        class="w-full p-3 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-800 focus:border-transparent"
+                    >
+                </div>
+
+                <!-- Link URL -->
+                <div class="mb-4">
+                    <label for="url" class="block text-sm font-medium text-gray-700 mb-1">URL</label>
+                    <input 
+                        type="url" 
+                        id="url"
+                        name="url" 
+                        required
+                        maxlength="512"
+                        placeholder="https://example.com"
+                        class="w-full p-3 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-800 focus:border-transparent"
+                    >
+                </div>
+            </form>
+        </div>
+
+        <!-- Modal footer -->
+        <div class="p-4 flex flex-col sm:flex-row gap-4 border-t border-gray-200">
+            <button type="button" onclick="closeModal()" class="w-full h-10 px-4 rounded-lg bg-white border border-gray-200 text-black hover:bg-gray-50 transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-black">
+                <span class="font-semibold">Cancel</span>
+            </button>
+            <button type="submit" form="linkForm" class="w-full h-10 px-4 rounded-lg bg-primary-600 text-white hover:bg-primary-500 transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-primary-600">
+                <span class="font-semibold">Save</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Link Modal container -->
+<div id="editLinkModalContainer" class="fixed inset-0 flex items-center justify-center z-50 pointer-events-none hidden transition-opacity duration-300">
+    <div class="w-full max-w-lg mx-4 bg-white rounded-lg shadow-xl pointer-events-auto">
+        <form id="editLinkForm" method="POST" action="">
+        {% csrf_token %}
+            <input type="hidden" id="editLinkId" name="link_id" />
+            <!-- Modal header -->
+            <div class="flex items-center gap-4 p-4 border-b border-gray-200">
+                <div class="w-8"></div>
+                <h2 class="text-black text-md font-semibold flex-1 text-center">Edit Link</h2>
+                <button type="button" onclick="closeModal()" class="p-2 hover:bg-gray-100 rounded-sm focus:outline-none focus:ring-2 focus:ring-black">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="p-4">
+                <div class="mb-4">
+                    <label for="editTitle" class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                    <input 
+                        type="text" 
+                        id="editTitle"
+                        name="title" 
+                        required
+                        maxlength="64"
+                        placeholder="e.g., Blog"
+                        class="w-full p-3 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-600 focus:border-transparent"
+                    >
+                </div>
+                <div class="mb-4">
+                    <label for="editUrl" class="block text-sm font-medium text-gray-700 mb-1">URL</label>
+                    <input 
+                        type="url" 
+                        id="editUrl"
+                        name="url" 
+                        required
+                        maxlength="512"
+                        placeholder="https://example.com"
+                        class="w-full p-3 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-600 focus:border-transparent"
+                    >
+                </div>
+            </div>
+
+            <div class="p-4 flex flex-col sm:flex-row gap-4 border-t border-gray-200">
+                <button type="button" onclick="closeModal()" class="w-full h-10 px-4 rounded-lg bg-white border border-gray-200 text-black hover:bg-gray-50 transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-black">
+                    <span class="font-semibold">Cancel</span>
+                </button>
+                <button type="submit" class="w-full h-10 px-4 rounded-lg bg-primary-600 text-white hover:bg-primary-500 transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-primary-600">
+                    <span class="font-semibold">Save</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+<!-- Share Profile -->
+<script>
+    async function shareProfile() {
+        try {
+            await navigator.share({
+                title: '{{ profile.name }}\'s Profile',
+                url: "{% url 'landing:profile' %}"
+            });
+        } catch (err) {
+            console.error('Share failed:', err);
+        }
+    }
+</script>
+
+<!-- View Archive -->
+ <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script>
+    document.getElementById('viewArchiveBtn').addEventListener('click', function() {
+    const archiveSection = document.getElementById('archiveSection');
+    const categoryLinkContainer = document.getElementById('categoryLinkContainer');
+    const icon = document.getElementById('archiveIcon');
+    const text = document.getElementById('archiveText');
+    
+    if (archiveSection.classList.contains('hidden')) {
+        archiveSection.classList.remove('hidden');
+        setTimeout(() => {
+            archiveSection.classList.remove('opacity-0', '-translate-y-5');
+            categoryLinkContainer.style.transform = 'translateY(20px)';
+        }, 10);
+        icon.className = 'fa-solid fa-chevron-up mr-1';
+        text.textContent = 'Hide archive';
+    } else {
+        archiveSection.classList.add('opacity-0', '-translate-y-5');
+        categoryLinkContainer.style.transform = 'translateY(0)';
+        setTimeout(() => {
+            archiveSection.classList.add('hidden');
+        }, 1000);
+        icon.className = 'fa-solid fa-chevron-right mr-1';
+        text.textContent = 'View archive';
+    }
+    });
+</script>
+
+<!-- Modal Control -->
+<script>
+    const modalBackdrop = document.getElementById('modalBackdrop');
+    const nameModalContainer = document.getElementById('nameModalContainer');
+    const socialModalContainer = document.getElementById('socialModalContainer');
+    const linkModalContainer = document.getElementById('linkModalContainer');
+    const editLinkModalContainer = document.getElementById('editLinkModalContainer');
+    const bioTextarea = document.getElementById('bio');
+    const bioCounter = document.getElementById('bioCounter');
+
+    function openNameModal(event) {
+        modalBackdrop.classList.remove('hidden');
+        nameModalContainer.classList.remove('hidden', 'pointer-events-none');
+        updateBioCounter();
+    }
+
+    function openSocialModal(event) {
+        modalBackdrop.classList.remove('hidden');
+        socialModalContainer.classList.remove('hidden', 'pointer-events-none');
+    }
+    function openLinkModal() {
+        modalBackdrop.classList.remove('hidden');
+        linkModalContainer.classList.remove('hidden', 'pointer-events-none');
+    }
+
+    function openEditLinkModal(id, title, url) {
+        const editLinkId = document.getElementById('editLinkId');
+        const editLinkForm = document.getElementById('editLinkForm');
+        const editTitle = document.getElementById('editTitle');
+        const editUrl = document.getElementById('editUrl');
+
+        modalBackdrop.classList.remove('hidden');
+        editLinkModalContainer.classList.remove('hidden', 'pointer-events-none');
+        editLinkId.value = id;
+        editLinkForm.action = `/landing/profile/links/${id}/update`;
+        editTitle.value = title;
+        editUrl.value = url;
+    }
+
+    function closeModal() {
+        modalBackdrop.classList.add('hidden');
+        nameModalContainer.classList.add('hidden', 'pointer-events-none');
+        socialModalContainer.classList.add('hidden', 'pointer-events-none');
+        linkModalContainer.classList.add('hidden', 'pointer-events-none');
+        editLinkModalContainer.classList.add('hidden', 'pointer-events-none');
+    }
+
+    function updateBioCounter() {
+        const currentLength = bioTextarea.value.length;
+        bioCounter.textContent = `${currentLength}/80`;
+    }
+
+    modalBackdrop.addEventListener('click', closeModal);
+    bioTextarea?.addEventListener('input', updateBioCounter);
+
+    nameModalContainer.addEventListener('click', (e) => e.stopPropagation());
+    socialModalContainer.addEventListener('click', (e) => e.stopPropagation());
+    linkModalContainer.addEventListener('click', (e) => e.stopPropagation());
+</script>
+
+<!-- Category Operations -->
+<script>
+    function toggleTitleEdit(categoryId) {
+        const editButtons = document.querySelectorAll(`.category-edit-${categoryId}`);
+        const form = document.querySelector(`.category-form-${categoryId}`);
+        const input = form.querySelector('.category-title-input');
+        const length = input.value.length;
+    
+        editButtons.forEach(button => button.classList.add('hidden'));
+        form.classList.remove('hidden');
+        input.focus();
+        input.setSelectionRange(length, length);
+        
+        const originalValue = input.value;
+        
+        function handleSubmit() {
+            if (input.value !== originalValue) {
+                form.submit();
+            } else {
+                editButtons.forEach(button => button.classList.remove('hidden'));
+                form.classList.add('hidden');
+            }
+        }
+        
+        input.addEventListener('blur', handleSubmit, { once: true });
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                input.blur();
+            }
+        }, { once: true });
+    }
+</script>
+
+<!-- Links Sorting and Categories Sorting -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Links sorting
+    const sortableList = document.getElementById('sortableLinks');
+    const linkOrderingForm = document.getElementById('linkOrderingForm');
+    const linkOrderingInput = document.getElementById('linkOrderingInput');
+
+    if (sortableList) {
+        Sortable.create(sortableList, {
+            group: 'shared',
+            handle: '.drag-handle',
+            animation: 150,
+            onEnd: function(evt) {
+                const targetCategory = evt.to.closest('.category-container');
+                
+                // 如果目標是 category，觸發 update_link_category
+                if (targetCategory) {
+                    const linkId = evt.item.dataset.id;
+                    const categoryId = targetCategory.dataset.id;
+                    
+                    // 建立並提交表單
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = "{% url 'landing:update_link_category' %}"
+                    
+                    // 加入 CSRF Token
+                    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                    const csrfInput = document.createElement('input');
+                    csrfInput.type = 'hidden';
+                    csrfInput.name = 'csrfmiddlewaretoken';
+                    csrfInput.value = csrfToken;
+                    form.appendChild(csrfInput);
+                    
+                    // 加入 link_id
+                    const linkIdInput = document.createElement('input');
+                    linkIdInput.type = 'hidden';
+                    linkIdInput.name = 'link_id';
+                    linkIdInput.value = linkId;
+                    form.appendChild(linkIdInput);
+                    
+                    // 加入 category_id
+                    const categoryIdInput = document.createElement('input');
+                    categoryIdInput.type = 'hidden';
+                    categoryIdInput.name = 'category_id';
+                    categoryIdInput.value = categoryId;
+                    form.appendChild(categoryIdInput);
+                    
+                    document.body.appendChild(form);
+                    form.submit();
+                } else {
+                    // 如果是在 sortableList 內部排序，則使用原來的 update_links_order
+                    const items = sortableList.children;
+                    const newOrder = Array.from(items).map(item => item.dataset.id);
+                    
+                    if(newOrder.length > 0) {
+                        linkOrderingInput.value = newOrder.join(',');
+                        linkOrderingForm.submit();
+                    }
+                }
+
+                // 清除所有 category 的背景色
+                document.querySelectorAll('.category-container').forEach(container => {
+                    container.style.backgroundColor = '';
+                });
+            },
+            onMove: function(evt) {
+                const targetCategory = evt.related.closest('.category-container');
+                
+                document.querySelectorAll('.category-container').forEach(container => {
+                    container.style.backgroundColor = '';
+                });
+                
+                if (targetCategory) {
+                    targetCategory.style.backgroundColor = 'var(--color-primary-100)';
+                }
+            }
+        });
+    }
+
+    // Categories sorting（保持不變）
+    const sortableCategories = document.getElementById('sortableCategories');
+    const categoryOrderingForm = document.getElementById('categoryOrderingForm');
+    const categoryOrderingInput = document.getElementById('categoryOrderingInput');
+
+    if (sortableCategories) {
+        Sortable.create(sortableCategories, {
+            handle: '.drag-handle',
+            animation: 150,
+            onEnd: function(evt) {
+                const items = sortableCategories.children;
+                const newOrder = Array.from(items).map(item => item.dataset.id);
+                
+                if(newOrder.length > 0) {
+                    categoryOrderingInput.value = newOrder.join(',');
+                    categoryOrderingForm.submit();
+                }
+            }
+        });
+    }
+
+    // 為每個 category 初始化 Sortable
+    document.querySelectorAll('.category-links').forEach(category => {
+        Sortable.create(category, {
+            group: 'shared',
+            handle: '.drag-handle',
+            animation: 150,
+            onEnd: function(evt) {
+                // 如果是從 category 移出到主列表，也需要更新 category
+                if (!evt.to.closest('.category-container')) {
+                    const linkId = evt.item.dataset.id;
+                    
+                    // 建立並提交表單
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = "{% url 'landing:update_link_category' %}"
+                    
+                    // 加入 CSRF Token
+                    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                    const csrfInput = document.createElement('input');
+                    csrfInput.type = 'hidden';
+                    csrfInput.name = 'csrfmiddlewaretoken';
+                    csrfInput.value = csrfToken;
+                    form.appendChild(csrfInput);
+                    
+                    // 加入 link_id，category_id 為 null
+                    const linkIdInput = document.createElement('input');
+                    linkIdInput.type = 'hidden';
+                    linkIdInput.name = 'link_id';
+                    linkIdInput.value = linkId;
+                    form.appendChild(linkIdInput);
+                    
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+
+                document.querySelectorAll('.category-container').forEach(container => {
+                    container.style.backgroundColor = '';
+                });
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

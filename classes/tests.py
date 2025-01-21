@@ -7,7 +7,7 @@ from pytest_django.asserts import assertTemplateUsed
 
 from users.models import User
 
-from .models import LiveCohort, PrivatePackage
+from .models import LiveCohort
 
 
 @pytest.mark.django_db
@@ -37,17 +37,6 @@ def test_teacher_classes(client):
         teacher=other_teacher, name='Other Class', max_students=10, price=100
     )
 
-    # Create test packages
-    package1 = PrivatePackage.objects.create(
-        teacher=teacher, name='Package 1', price=50
-    )
-    package2 = PrivatePackage.objects.create(
-        teacher=teacher, name='Package 2', price=100
-    )
-    other_package = PrivatePackage.objects.create(
-        teacher=other_teacher, name='Other Package', price=100
-    )
-
     template = 'classes/teacher_classes.html'
     url = reverse('classes:teacher-classes', kwargs={'user_id': teacher.id})
 
@@ -62,13 +51,6 @@ def test_teacher_classes(client):
     assert cohort1 in context_classes
     assert cohort2 in context_classes
     assert other_cohort not in context_classes
-
-    # Test packages in context
-    context_packages = resp.context['packages']
-    assert len(context_packages) == 2
-    assert package1 in context_packages
-    assert package2 in context_packages
-    assert other_package not in context_packages
 
     # Test invalid user
     invalid_url = reverse('classes:teacher-classes', kwargs={'user_id': 99999})
@@ -140,44 +122,3 @@ def test_add_live_cohort(client, user):
     assert response.status_code == 200
     assert 'End time must be after start time' in str(response.content)
     assert LiveCohort.objects.count() == 1
-
-
-@pytest.mark.django_db
-def test_add_private_package(client, user):
-    url = reverse('classes:add-private-package')
-
-    # Login Required
-    response = client.get(url)
-    assert response.status_code == 302  # Should redirect to login
-    assert '/login' in response['Location']
-
-    # Show add page for logged in users
-    client.force_login(user)
-    response = client.get(url)
-    assertTemplateUsed(response, 'classes/add_private_package.html')
-    assert response.status_code == 200
-
-    # Add private package success
-    data = {
-        'name': 'Test Package',
-        'description': 'Test Description',
-        'price': '199.99',
-        'original_price': '299.99',
-        'num_sessions': 5,
-    }
-
-    response = client.post(url, data)
-    assert response.status_code == 302
-
-    # Verify package was created
-    package = PrivatePackage.objects.get(name='Test Package')
-    assert package.teacher == user
-    assert package.price == Decimal('199.99')
-    assert package.original_price == Decimal('299.99')
-    assert package.num_sessions == 5
-
-    # Test invalid data (negative price)
-    data['price'] = '-50'
-    response = client.post(url, data)
-    assert response.status_code == 200  # Form should redisplay with errors
-    assert PrivatePackage.objects.count() == 1  # No new package should be created

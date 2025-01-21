@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import LiveCohort, LiveCohortSession, PrivatePackage
+from .models import LiveCohort, LiveCohortSession
 
 
 class LiveCohortForm(forms.Form):
@@ -44,23 +44,3 @@ class LiveCohortForm(forms.Form):
         )
 
         return cohort
-
-
-class PrivatePackageForm(forms.Form):
-    name = forms.CharField(max_length=255)
-    description = forms.CharField(required=False, widget=forms.Textarea)
-    price = forms.DecimalField(max_digits=6, decimal_places=2, min_value=0)
-    original_price = forms.DecimalField(
-        max_digits=6, decimal_places=2, min_value=0, required=False
-    )
-    num_sessions = forms.IntegerField(min_value=1, max_value=15, initial=1)
-
-    def save(self, teacher):
-        return PrivatePackage.objects.create(
-            name=self.cleaned_data['name'],
-            description=self.cleaned_data['description'],
-            price=self.cleaned_data['price'],
-            original_price=self.cleaned_data['original_price'],
-            num_sessions=self.cleaned_data['num_sessions'],
-            teacher=teacher,
-        )

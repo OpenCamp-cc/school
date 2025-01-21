@@ -9,8 +9,8 @@ from django.views.generic import TemplateView
 from users.http import AuthenticatedHttpRequest
 from users.models import User
 
-from .forms import LiveCohortForm, PrivatePackageForm
-from .models import LiveCohort, PrivatePackage, SelfPacedClass
+from .forms import LiveCohortForm
+from .models import LiveCohort
 
 
 def homepage(request: HttpRequest) -> HttpResponse:
@@ -24,12 +24,11 @@ def search_classes(request: HttpRequest) -> HttpResponse:
 def teacher_classes(request: HttpRequest, user_id: int) -> HttpResponse:
     user = get_object_or_404(User, pk=user_id)
     classes = LiveCohort.objects.filter(teacher=user).prefetch_related('sessions')
-    packages = PrivatePackage.objects.filter(teacher=user)
 
     return render(
         request,
         'classes/teacher_classes.html',
-        {'user': user, 'classes': classes, 'packages': packages},
+        {'user': user, 'classes': classes},
     )
 
 
@@ -50,29 +49,11 @@ def add_live_cohort(request: AuthenticatedHttpRequest) -> HttpResponse:
 
 
 @login_required
-def add_private_package(request: AuthenticatedHttpRequest) -> HttpResponse:
-    if request.method == 'POST':
-        form = PrivatePackageForm(request.POST)
-        if form.is_valid():
-            try:
-                package = form.save(teacher=request.user)
-                return redirect('classes:teacher-classes', user_id=request.user.id)
-            except Exception as e:
-                messages.error(request, 'Failed to create package. Please try again.')
-    else:
-        form = PrivatePackageForm()
-
-    return render(request, 'classes/add_private_package.html', {'form': form})
-
-
-@login_required
 def teacher_dashboard(request: HttpRequest) -> HttpResponse:
     user = request.user
 
     # Get all classes taught by the user
-    private_packages = PrivatePackage.objects.filter(teacher=user)
     live_cohorts = LiveCohort.objects.filter(teacher=user)
-    self_paced_classes = SelfPacedClass.objects.filter(teacher=user)
 
     # Get upcoming sessions from live cohorts
     now = timezone.now()
@@ -88,9 +69,7 @@ def teacher_dashboard(request: HttpRequest) -> HttpResponse:
     upcoming_sessions = upcoming_sessions[:10]
 
     context = {
-        'private_packages': private_packages,
         'live_cohorts': live_cohorts,
-        'self_paced_classes': self_paced_classes,
         'upcoming_sessions': upcoming_sessions,
     }
 

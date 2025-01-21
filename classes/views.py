@@ -73,4 +73,32 @@ def teacher_dashboard(request: HttpRequest) -> HttpResponse:
         'upcoming_sessions': upcoming_sessions,
     }
 
+    return render(request, 'classes/teacher-dashboard.html', context)
+
+
+@login_required
+def student_dashboard(request: HttpRequest) -> HttpResponse:
+    user = request.user
+
+    # Get all classes enrolled by the user
+    live_cohorts = LiveCohort.objects.filter(students=user)
+
+    # Get upcoming sessions from live cohorts
+    now = timezone.now()
+    upcoming_sessions = []
+    for cohort in live_cohorts:
+        cohort_sessions = cohort.sessions.filter(start_time__gt=now).order_by(
+            'start_time'
+        )
+        upcoming_sessions.extend(cohort_sessions)
+
+    # Sort sessions by start time and limit to next 10
+    upcoming_sessions.sort(key=lambda x: x.start_time)
+    upcoming_sessions = upcoming_sessions[:10]
+
+    context = {
+        'live_cohorts': live_cohorts,
+        'upcoming_sessions': upcoming_sessions,
+    }
+
     return render(request, 'classes/dashboard.html', context)

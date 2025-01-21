@@ -6,6 +6,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.generic import TemplateView
 
+from users.http import AuthenticatedHttpRequest
 from users.models import User
 
 from .forms import LiveCohortForm, PrivatePackageForm
@@ -33,7 +34,7 @@ def teacher_classes(request: HttpRequest, user_id: int) -> HttpResponse:
 
 
 @login_required
-def add_live_cohort(request: HttpRequest) -> HttpResponse:
+def add_live_cohort(request: AuthenticatedHttpRequest) -> HttpResponse:
     if request.method == 'POST':
         form = LiveCohortForm(request.POST)
         if form.is_valid():
@@ -49,7 +50,7 @@ def add_live_cohort(request: HttpRequest) -> HttpResponse:
 
 
 @login_required
-def add_private_package(request: HttpRequest) -> HttpResponse:
+def add_private_package(request: AuthenticatedHttpRequest) -> HttpResponse:
     if request.method == 'POST':
         form = PrivatePackageForm(request.POST)
         if form.is_valid():

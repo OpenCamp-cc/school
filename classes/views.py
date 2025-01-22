@@ -17,6 +17,18 @@ def homepage(request: HttpRequest) -> HttpResponse:
     return render(request, 'index.html')
 
 
+def about_us(request: HttpRequest) -> HttpResponse:
+    return render(request, 'about_us.html')
+
+
+def faq(request: HttpRequest) -> HttpResponse:
+    return render(request, 'faq.html')
+
+
+def upcoming_courses(request: HttpRequest) -> HttpResponse:
+    return render(request, 'courses.html')
+
+
 def search_classes(request: HttpRequest) -> HttpResponse:
     return render(request, 'classes/search_classes.html')
 

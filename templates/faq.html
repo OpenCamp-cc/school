@@ -1,0 +1,87 @@
+{% extends 'partials/anonymous_base.html' %}
+{% load static %}
+
+{% block content %}
+    <div class="max-w-7xl mx-auto px-4">
+        <!-- FAQ Header -->
+        <div class="py-8 md:py-16">
+            <h1 class="text-4xl md:text-5xl font-bold text-slate-800 mb-8">Frequently Asked Questions</h1>
+        </div>
+
+        <!-- Students Section -->
+        <div class="mb-12">
+            <h2 class="text-3xl font-bold text-slate-800 mb-6">For Students</h2>
+            <div class="space-y-8">
+                <div class="space-y-4">
+                    <h3 class="text-xl font-bold text-slate-800">When will the next cohort begin?</h3>
+                    <p class="text-slate-600">Check out our Courses and Curriculum page to learn more about upcoming cohorts.</p>
+                </div>
+
+                <div class="space-y-4">
+                    <h3 class="text-xl font-bold text-slate-800">What happens if I am not able to catch up with the course schedule?</h3>
+                    <p class="text-slate-600">You will be given up to 2 chances to catch up on assignments or tasks that you are unable to complete on schedule. Failure to do so may result in you being asked to leave the course. We will refund you based on the amount you have paid via prorated refund calculations.</p>
+                </div>
+
+                <div class="space-y-4">
+                    <h3 class="text-xl font-bold text-slate-800">What is the refund policy?</h3>
+                    <ul class="list-disc pl-5 text-slate-600 space-y-2">
+                        <li>14 days or more before the start of cohort: full refund [1]</li>
+                        <li>14 days or less before start of cohort: 90% refund [1]</li>
+                        <li>First 7 days: 75% refund [2]</li>
+                        <li>After the first 7 days: prorated refund by weeks [1] [2]</li>
+                    </ul>
+                    <div class="bg-gray-50 p-4 rounded-lg mt-4 text-sm text-slate-600">
+                        <p class="mb-4">[1] We use Stripe to process payments, and Stripe does not refund service charges when we issue a refund. We will refund you based on our refund policy, minus these fees.</p>
+                        <p>[2] Example of prorated refund:</p>
+                        <ul class="list-disc pl-5 space-y-2">
+                            <li>You request for a refund on week 2</li>
+                            <li>You have opted for a monthly payment and made your first payment prior to the start of the class</li>
+                            <li>Your refund will cover week 3 and week 4, minus Stripe fees (see [1])</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <h3 class="text-xl font-bold text-slate-800">What happens if I have a personal emergency?</h3>
+                    <p class="text-slate-600">We understand that personal emergencies may happen that may affect your ability to complete the course. Depending on the duration on the personal emergency, you may be allowed to continue with the course, or we will assist with transferring you to the next cohort. You may also request for a pro-rated refund if you wish to drop out of the course entirely.</p>
+                </div>
+
+                <div class="space-y-4">
+                    <h3 class="text-xl font-bold text-slate-800">When will the full curriculum be available?</h3>
+                    <p class="text-slate-600">We estimate that the draft version of our curriculum will be made available around earlier February 2025, with the first complete version to be available by May 2025 once Cohort #0 is complete.</p>
+                    <p class="text-slate-600">If you are interested in taking a look at the curriculum before it is ready, or just curious on how it is built, join us for one of our Build Together sessions.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Companies Section -->
+        <div class="mb-12">
+            <h2 class="text-3xl font-bold text-slate-800 mb-6">For Companies or Sponsors</h2>
+            <div class="space-y-4">
+                <h3 class="text-xl font-bold text-slate-800">Are we able to sponsor students for open camp?</h3>
+                <p class="text-slate-600">Thank you for supporting open camp. Yes, there are two sponsorship methods available:</p>
+                <ul class="list-disc pl-5 text-slate-600 space-y-2">
+                    <li>Tuition fee sponsorship: cover partial / full tuition fee for the student(s)</li>
+                    <li>Hiring sponsorship: hire our graduates and you can "refund" the tuition fee (partial / full) to our graduates directly, eg. sign-on bonus.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Other Questions -->
+        <div class="mb-12">
+            <h2 class="text-3xl font-bold text-slate-800 mb-6">Other Questions</h2>
+            <p class="text-slate-600">Please send in your questions to <a href="mailto:applications@opencamp.cc" class="text-primary-600 hover:text-primary-700">applications@opencamp.cc</a> and we'll be happy to help answer your questions.</p>
+        </div>
+
+        <!-- CTA Section -->
+        <div class="text-center py-8 mb-8 bg-gradient-to-br from-primary-600 to-primary-800 rounded-3xl shadow-xl">
+            <h2 class="text-4xl font-bold text-white mb-4">Go from 1x to 10x Now</h2>
+            <p class="text-primary-100 text-lg mb-8 mx-auto">Level up your career with practical, industry-focused courses designed to accelerate your growth.</p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="{% url 'classes:courses' %}" class="inline-flex items-center justify-center px-6 py-3 border-2 border-white text-base font-medium rounded-md text-white hover:bg-white hover:text-primary-700 transition-colors duration-200">
+                    Browse Courses
+                </a>
+            </div>
+        </div>
+    </div>
+{% endblock %}

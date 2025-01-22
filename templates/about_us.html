@@ -1,0 +1,90 @@
+{% extends 'partials/anonymous_base.html' %}
+{% load static %}
+
+{% block content %}
+    <div class="max-w-7xl mx-auto px-4">
+        <!-- Instructor Profile Section -->
+        <div class="py-8 md:py-16">
+            <h1 class="text-4xl md:text-5xl font-bold text-slate-800 mb-8">About Us</h1>
+
+            <div class="flex flex-col md:flex-row gap-8 justify-start">
+                <div class="">
+                    <img src="{% static 'img/victor.jpg' %}" alt="Victor Neo" class="rounded-xl w-32 object-cover">
+                </div>
+                <div class="">
+                    <h2 class="text-3xl font-bold text-slate-800 mb-4">Victor Neo</h2>
+                    <div class="space-y-4 text-slate-600">
+                        <p class="flex items-center gap-2">
+                            <span class="font-semibold">Industry Experience:</span> Over 10 years
+                        </p>
+                        <a href="https://linkedin.com/in/victorneo" class="text-primary-600 hover:text-primary-700 font-medium">LinkedIn Profile →</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Background and Fun Facts Section -->
+        <div class="flex flex-col md:flex-row gap-8 mb-12">
+            <!-- Experience Section -->
+            <div class="flex-1">
+                <h3 class="text-2xl font-bold text-slate-800 mb-6">Professional Background</h3>
+                <ul class="space-y-4 text-slate-600">
+                    <li class="flex items-start">
+                        <span class="text-primary-600 font-semibold mr-2">•</span>
+                        <span>Employee and Engineer #1 at Carousell, a unicorn-startup based in Singapore</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-primary-600 font-semibold mr-2">•</span>
+                        <span>Led and mentored multiple teams consisting of close to a 100 Software Engineers and Engineering Managers</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-primary-600 font-semibold mr-2">•</span>
+                        <span>Spent 2 years (2022 ~ 2023) at a Coding Bootcamp helping over hundreds of students achieve their career goal of becoming a Software Engineer</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Fun Facts Section -->
+            <div class="flex-1">
+                <h3 class="text-2xl font-bold text-slate-800 mb-6">Fun Facts</h3>
+                <ul class="space-y-4 text-slate-600">
+                    <li class="flex items-start">
+                        <span class="text-primary-600 font-semibold mr-2">•</span>
+                        <span><strong>Favourite Programming Language:</strong> Python</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-primary-600 font-semibold mr-2">•</span>
+                        <span><strong>Started Programming since:</strong> 15 years old, back in 2003</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-primary-600 font-semibold mr-2">•</span>
+                        <span><strong>PC or Console Gaming:</strong> Consoles!</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Why open camp Section -->
+        <div class="bg-primary-100 rounded-2xl p-8 mb-12">
+            <h2 class="text-3xl font-bold text-slate-800 mb-6">Why I Started open camp</h2>
+            <div class="space-y-4 text-slate-600">
+                <p>open camp was started to help Software Engineers level up - our focus is on lowering the barriers to entry (affordability) while keeping the bar high (challenging). At the same time, we want to keep open camp "open" by allowing anyone to peek into the development process and how the course is run.</p>
+
+                <p>After spending almost 10 years in the tech industry as a Software Engineer and Engineering Manager, I joined a coding bootcamp back in 2022 to better understand the challenges faced by prospective students and graduates in securing their first job in the tech industry.</p>
+
+                <p>Equipped with this knowledge, I have decided to start open camp to help more folks to grow faster in the tech industry without breaking the bank while learning all the key skills they need to be successful.</p>
+            </div>
+        </div>
+
+        <!-- CTA Section -->
+        <div class="text-center py-8 mb-8 bg-gradient-to-br from-primary-600 to-primary-800 rounded-3xl shadow-xl">
+            <h2 class="text-4xl font-bold text-white mb-4">Go from 1x to 10x Now</h2>
+            <p class="text-primary-100 text-lg mb-8 mx-auto">Level up your career with practical, industry-focused courses designed to accelerate your growth.</p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="{% url 'classes:courses' %}" class="inline-flex items-center justify-center px-6 py-3 border-2 border-white text-base font-medium rounded-md text-white hover:bg-white hover:text-primary-700 transition-colors duration-200">
+                    Browse Courses
+                </a>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,171 @@
+{% extends 'partials/anonymous_base.html' %}
+{% load static %}
+
+{% block content %}
+    <div class="max-w-7xl mx-auto px-4">
+        <!-- Header Section -->
+        <div class="py-8 md:py-16">
+            <h1 class="text-4xl md:text-5xl font-bold text-slate-800 mb-6">Upcoming Courses</h1>
+            <!-- Core Themes -->
+            <div class="bg-gradient-to-br from-primary-50 to-primary-100 rounded-2xl p-8 mb-12">
+                <h2 class="text-2xl font-bold text-slate-800 mb-8">open camp's Focus Areas</h2>
+                <div class="grid md:grid-cols-3 gap-8">
+                    <div class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200">
+                        <div class="mb-4">
+                            <svg class="w-12 h-12 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold text-slate-800 mb-4">Technical Skills</h3>
+                        <ul class="space-y-3 text-slate-600">
+                            <li class="flex items-center">
+                                <span class="flex-shrink-0 w-1.5 h-1.5 rounded-full bg-primary-600 mr-3"></span>
+                                <span>Programming related</span>
+                            </li>
+                            <li class="flex items-center">
+                                <span class="flex-shrink-0 w-1.5 h-1.5 rounded-full bg-primary-600 mr-3"></span>
+                                <span>Design and Architecture</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200">
+                        <div class="mb-4">
+                            <svg class="w-12 h-12 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold text-slate-800 mb-4">Communication Skills</h3>
+                        <ul class="space-y-3 text-slate-600">
+                            <li class="flex items-center">
+                                <span class="flex-shrink-0 w-1.5 h-1.5 rounded-full bg-primary-600 mr-3"></span>
+                                <span>Technical Communication</span>
+                            </li>
+                            <li class="flex items-center">
+                                <span class="flex-shrink-0 w-1.5 h-1.5 rounded-full bg-primary-600 mr-3"></span>
+                                <span>Non-Technical Communication</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200">
+                        <div class="mb-4">
+                            <svg class="w-12 h-12 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold text-slate-800 mb-4">Collaboration</h3>
+                        <ul class="space-y-3 text-slate-600">
+                            <li class="flex items-center">
+                                <span class="flex-shrink-0 w-1.5 h-1.5 rounded-full bg-primary-600 mr-3"></span>
+                                <span>Learning from peers</span>
+                            </li>
+                            <li class="flex items-center">
+                                <span class="flex-shrink-0 w-1.5 h-1.5 rounded-full bg-primary-600 mr-3"></span>
+                                <span>Collaboration with peers</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Backend Course Section -->
+            <div class="mb-12">
+                <h2 class="text-3xl font-bold text-slate-800 mb-6">Backend Course</h2>
+                <div class="bg-white rounded-xl border border-slate-200 p-8 mb-8">
+                    <div class="mb-8">
+                        <h3 class="text-2xl font-bold text-slate-800 mb-4">Cohort #0 (March 2025)</h3>
+                        <div class="space-y-4 text-slate-600">
+                            <p class="font-medium">We are now accepting applications for our first cohort.</p>
+                            <p><span class="font-semibold">Application Deadline:</span> Saturday, 8th February 2025, 23:59 (GMT+8)</p>
+                            <div class="mt-4">
+                                <p class="mb-3 font-medium">To apply, please send an email to:
+                                <a href="mailto:applications@opencamp.cc" class="text-primary-600 font-medium hover:text-primary-700">applications@opencamp.cc</a>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div>
+                            <h4 class="text-xl font-bold text-slate-800 mb-4">Key Topics</h4>
+                            <ul class="grid md:grid-cols-2 gap-3 text-slate-600">
+                                <li class="flex items-start">
+                                    <span class="text-primary-600 font-semibold mr-2">•</span>
+                                    <span>Principles behind Reliable Distributed Systems</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-primary-600 font-semibold mr-2">•</span>
+                                    <span>Flow of Data between systems</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-primary-600 font-semibold mr-2">•</span>
+                                    <span>Understanding Failures</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-primary-600 font-semibold mr-2">•</span>
+                                    <span>Replication and Partitioning</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-primary-600 font-semibold mr-2">•</span>
+                                    <span>Monitoring and Observability</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-primary-600 font-semibold mr-2">•</span>
+                                    <span>Event Driven Systems</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h4 class="text-xl font-bold text-slate-800 mb-4">Course Details</h4>
+                            <div class="grid md:grid-cols-2 gap-8">
+                                <div class="space-y-4 text-slate-600">
+                                    <p class="font-semibold">Schedule:</p>
+                                    <ul class="space-y-2">
+                                        <li>Start: 3rd March, 2025</li>
+                                        <li>End: 25th May, 2025</li>
+                                        <li>Live lessons: Every Monday, 7pm ~ 9pm (SGT)</li>
+                                        <li>Cohort Size: 5 students</li>
+                                    </ul>
+                                </div>
+                                <div class="space-y-4 text-slate-600">
+                                    <p class="font-semibold">Course Fees:</p>
+                                    <p>USD 499 / SGD 680 for 2 months (part-time, online)</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 class="text-xl font-bold text-slate-800 mb-4">Requirements</h4>
+                            <ul class="space-y-2 text-slate-600">
+                                <li class="flex items-start">
+                                    <span class="text-primary-600 font-semibold mr-2">•</span>
+                                    <span>1~2 years of working experience as a Software Engineer</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-primary-600 font-semibold mr-2">•</span>
+                                    <span>5~10 hours a week for materials and assignments</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-primary-600 font-semibold mr-2">•</span>
+                                    <span>Internet connection for weekly Zoom calls</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CTA Section -->
+            <div class="text-center py-8 bg-gradient-to-br from-primary-600 to-primary-800 rounded-3xl shadow-xl">
+                <h2 class="text-4xl font-bold text-white mb-4">Ready to Level Up?</h2>
+                <p class="text-primary-100 text-lg mb-8 mx-auto">Join our Backend course cohort and accelerate your growth as a Software Engineer.</p>
+                <div class="space-y-4">
+                    <p class="text-white text-lg">Send your application to:</p>
+                    <a href="mailto:applications@opencamp.cc" class="inline-flex items-center justify-center px-6 py-3 border-2 border-white text-base font-medium rounded-md text-white hover:bg-white hover:text-primary-700 transition-colors duration-200">
+                        applications@opencamp.cc
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -2,6 +2,122 @@
 {% load static %}
 
 {% block content %}
+    <div class="max-w-7xl mx-auto px-4">
+        <!-- Main Hero Section -->
+        <div class="flex flex-col md:flex-row items-center gap-4 md:gap-8 py-4 md:py-16">
+            <div class="flex-1">
+                <h1 class="text-4xl md:text-5xl font-bold text-slate-800 mb-6">
+                    Designed to help Software Engineers go from 1x - 10x.
+                </h1>
+            </div>
+            <div class="flex-1">
+                <!-- Placeholder for hero image -->
+                <div class="rounded-xl w-full aspect-video">
+                    <img src="{% static 'img/hero.png' %}" alt="Hero Image" class="object-cover rounded-xl">
+                </div>
+            </div>
+        </div>
 
+        <!-- Hero Section -->
+        <div class="mb-12 pt-8">
+            <p class="text-lg text-slate-800">
+                open camp is an online school focused on training Software
+                Engineers to bring them up to the next level.
+                <br />We are focused on
+                being <span class="text-primary-800">open</span>, <span class="text-primary-800">challenging</span>, and most importantly,
+                <span class="text-primary-800">affordable</span>.
+              </p>
+            <p class="text-primary-800 font-medium mt-4">
+                Word of warning: open camp is not designed to be easy; it's
+                designed to help highly motivated folks to challenge themselves
+                to grow even faster.
+              </p>
+        </div>
+
+        <!-- Core Features Grid -->
+        <div class="grid md:grid-cols-3 gap-8 mb-12">
+            <!-- Open -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h2 class="text-2xl font-bold text-slate-800 mb-4">Open</h2>
+                <p class="text-slate-600">
+                    All materials that we develop for open camp will be open
+                    source and available for anyone to use. Everyone is welcome
+                    to join and participate in our community.
+                </p>
+                <a href="https://github.com/opencamp-cc" target="_blank" class="flex items-center mt-4 text-slate-800 hover:text-slate-900">
+                    <svg class="h-6 w-6 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                        <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd"/>
+                    </svg>
+                    Visit our GitHub
+                </a>
+            </div>
+
+            <!-- Challenging -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h2 class="text-2xl font-bold text-slate-800 mb-4">Challenging</h2>
+                <p class="text-slate-600">
+                    open camp adopts a flipped classroom learning model. Each
+                    week, you will be reviewing assigned materials, sharing your
+                    findings with peers before working on challenging
+                    assignments that will be peer-reviewed and graded by the
+                    instructors.
+                </p>
+            </div>
+
+            <!-- Affordable -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h2 class="text-2xl font-bold text-slate-800 mb-4">Affordable</h2>
+                <p class="text-slate-600">
+                    open camp will be affordable for everyone: each course
+                    only costs a total of USD 499 / SGD 680 for 2 months
+                    (part-time, online). <br />To keep costs low, we only use open
+                    source and free learning materials as part of our
+                    curriculum.
+                </p>
+            </div>
+        </div>
+
+        <!-- Differentiator Section -->
+        <div class="bg-primary-100 rounded-2xl p-8 mb-12">
+            <h2 class="text-3xl font-bold text-slate-800 mb-6">How is open camp different?</h2>
+            <p class="text-slate-600 mb-6">
+                The goal of open camp is to develop a community of highly
+                motivated Software Developers through a low-cost and affordable
+                coding courses. As such, we operate very differently from other
+                schools which are either profit-centric or venture-backed.
+            </p>
+
+            <h3 class="text-xl font-bold text-slate-800 mb-4">Our core principles:</h3>
+            <ul class="space-y-4 text-slate-600">
+                <li class="flex items-start">
+                    <span class="text-primary-600 font-semibold mr-2">•</span>
+                    <span><strong class="text-slate-800">Open:</strong> Use open source and materials that are accessible to all. All materials or projects will be open source and available for anyone to reference and use.</span>
+                </li>
+                <li class="flex items-start">
+                    <span class="text-primary-600 font-semibold mr-2">•</span>
+                    <span><strong class="text-slate-800">Community-first:</strong> Focus on building a self-supportive community of highly motivated Software Developers that connects our students and alumni.</span>
+                </li>
+                <li class="flex items-start">
+                    <span class="text-primary-600 font-semibold mr-2">•</span>
+                    <span><strong class="text-slate-800">Cohort-based:</strong> Peer learning is critical for motivation and pushing each other to achieve more.</span>
+                </li>
+                <li class="flex items-start">
+                    <span class="text-primary-600 font-semibold mr-2">•</span>
+                    <span><strong class="text-slate-800">Challenging:</strong> Our assignments and homework are designed to challenge you and accelerate the development of your skills.</span>
+                </li>
+                <li class="flex items-start">
+                    <span class="text-primary-600 font-semibold mr-2">•</span>
+                    <span><strong class="text-slate-800">Affordability:</strong> Provide access to the course to as many people as possible while ensuring operational costs are covered.</span>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Footer Note -->
+        <div class="text-slate-600 mb-8">
+            <p class="mb-4">
+                Where possible, we will work towards further reducing the tuition fees without affecting the quality of our instruction in the future. In the future, if we can cover our operational cost without the need to collect tuition fees, we will pursue this path as well.
+            </p>
+        </div>
+    </div>
 {% endblock %}
 

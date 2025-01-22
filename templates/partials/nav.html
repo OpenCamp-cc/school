@@ -1,18 +1,77 @@
-    <!-- Navigation -->
-    <nav class="mb-8">
-        <div class="max-w-7xl mx-auto px-4">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center">
-                    <a href="/" class="text-slate-800 font-bold text-xl">LingoRaft</a>
-                </div>
-                <div class="hidden md:flex items-center space-x-8 text-sm">
-                    <a href="#" class="text-slate-800 hover:text-slate-900">Courses</a>
-                    <a href="#" class="text-slate-800 hover:text-slate-900">Live Classes</a>
-                    <a href="#" class="text-slate-800 hover:text-slate-900">Self-Paced</a>
-                    <button class="font-bold">
-                        Sign Up
-                    </button>
-                </div>
+{% load static %}
+<nav class="mb-4 md:mb-8" x-data="{ isOpen: false }">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="flex justify-between h-16">
+            <div class="flex items-center">
+                <a href="/" class="text-slate-800 font-bold text-xl pt-4">
+                    <img class="h-12" src="{% static 'img/logo.png' %}">
+                </a>
+            </div>
+
+            <!-- Desktop Menu -->
+            <div class="hidden md:flex items-center space-x-8 text-sm">
+                <a href="{% url 'classes:about-us' %}" class="text-slate-800 hover:text-slate-900">About Us</a>
+                <a href="{% url 'classes:courses' %}" class="text-slate-800 hover:text-slate-900">Upcoming Courses</a>
+                <a href="{% url 'classes:faq' %}" class="text-slate-800 hover:text-slate-900">FAQ</a>
+                <a href="https://github.com/opencamp-cc" target="_blank" class="text-slate-800 hover:text-slate-900">
+                    <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                        <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd"/>
+                    </svg>
+                </a>
+            </div>
+
+            <!-- Mobile Menu Button -->
+            <div class="md:hidden flex items-center">
+                <button @click="isOpen = !isOpen" type="button" class="text-slate-800 hover:text-slate-900 focus:outline-none">
+                    <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                    </svg>
+                </button>
             </div>
         </div>
-    </nav>
+    </div>
+
+    <!-- Mobile Menu Overlay -->
+    <div x-show="isOpen"
+         class="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+         @click="isOpen = false"
+         x-transition:enter="transition-opacity ease-linear duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition-opacity ease-linear duration-300"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0">
+    </div>
+
+    <!-- Mobile Menu Panel -->
+    <div x-show="isOpen"
+         class="fixed top-0 right-0 w-64 h-full bg-white z-50 md:hidden"
+         x-transition:enter="transition ease-in-out duration-300 transform"
+         x-transition:enter-start="translate-x-full"
+         x-transition:enter-end="translate-x-0"
+         x-transition:leave="transition ease-in-out duration-300 transform"
+         x-transition:leave-start="translate-x-0"
+         x-transition:leave-end="translate-x-full">
+
+        <div class="flex flex-col h-full">
+            <div class="flex justify-end p-4">
+                <button @click="isOpen = false" class="text-slate-800 hover:text-slate-900">
+                    <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="px-4 py-2">
+                <a href="{% url 'classes:about-us' %}" class="block py-2 text-slate-800 hover:text-slate-900">About Us</a>
+                <a href="{% url 'classes:courses' %}" class="block py-2 text-slate-800 hover:text-slate-900">Upcoming Courses</a>
+                <a href="{% url 'classes:faq' %}" class="block py-2 text-slate-800 hover:text-slate-900">FAQ</a>
+                <a href="https://github.com/opencamp-cc" target="_blank" class="flex items-center py-2 text-slate-800 hover:text-slate-900">
+                    <svg class="h-6 w-6 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                        <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd"/>
+                    </svg>
+                    GitHub
+                </a>
+            </div>
+        </div>
+    </div>
+</nav>

@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class LanguagesConfig(AppConfig):
+class WaitlistConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'languages'
+    name = 'waitlist'

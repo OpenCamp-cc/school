@@ -45,12 +45,11 @@ INSTALLED_APPS = [
     'django_browser_reload',
     'django_htmx',
     'db',
-    'languages',
     'users',
     'integrations',
     'landing',
-    'marketplace',
     'classes',
+    'waitlist',
 ]
 
 MIDDLEWARE = [

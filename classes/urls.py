@@ -9,6 +9,7 @@ urlpatterns = [
     path('about-us', views.about_us, name='about-us'),
     path('courses', views.upcoming_courses, name='courses'),
     path('faq', views.faq, name='faq'),
+    path('docs/curriculum/', views.curriculum, name='curriculum'),
     path('classes', views.search_classes, name='search-classes'),
     path('teacher/dashboard/live/add', views.add_live_cohort, name='add-live-cohort'),
     path(

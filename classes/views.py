@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 from django.views.generic import TemplateView
 
@@ -27,6 +28,10 @@ def faq(request: HttpRequest) -> HttpResponse:
 
 def upcoming_courses(request: HttpRequest) -> HttpResponse:
     return render(request, 'courses.html')
+
+
+def curriculum(request: HttpRequest) -> HttpResponse:
+    return redirect(reverse('classes:courses'))
 
 
 def search_classes(request: HttpRequest) -> HttpResponse:

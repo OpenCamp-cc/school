@@ -49,7 +49,6 @@ INSTALLED_APPS = [
     'integrations',
     'landing',
     'classes',
-    'waitlist',
 ]
 
 MIDDLEWARE = [

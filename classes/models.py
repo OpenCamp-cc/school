@@ -28,6 +28,7 @@ class LiveCohort(BaseModel, CreatedUpdatedMixin):
     )
     students = models.ManyToManyField(User, through='LiveCohortRegistration')
     sessions: models.QuerySet['LiveCohortSession']
+    assignments: models.QuerySet['LiveCohortAssignment']
 
     upcoming_assignments: List['LiveCohortAssignment']
     upcoming_sessions: List['LiveCohortSession']
@@ -103,10 +104,17 @@ class LiveCohortRegistration(BaseModel):
 
 
 class LiveCohortAssignment(BaseModel, CreatedUpdatedMixin):
-    cohort = models.ForeignKey(LiveCohort, on_delete=models.CASCADE)
+    cohort = models.ForeignKey(
+        LiveCohort, on_delete=models.CASCADE, related_name='assignments'
+    )
     name = models.CharField(max_length=255)
     graded = models.BooleanField(default=False)
     due_date = models.DateTimeField()
+
+    description = models.TextField(null=True, blank=True)
+
+    attachment = models.FileField(upload_to='assignments/', blank=True, null=True)
+    external_url = models.URLField(null=True, blank=True)
 
     def __str__(self):
         return f'{self.name} - {self.cohort}'
@@ -117,6 +125,7 @@ class LiveCohortAssignmentSubmission(BaseModel, CreatedUpdatedMixin):
         LiveCohortAssignment, on_delete=models.CASCADE, related_name='submissions'
     )
     student = models.ForeignKey(User, on_delete=models.CASCADE)
+    comments = models.TextField(null=True, blank=True)
     submitted = models.BooleanField(default=False)
     submission_time = models.DateTimeField(auto_now_add=True)
 
@@ -125,7 +134,7 @@ class LiveCohortAssignmentSubmission(BaseModel, CreatedUpdatedMixin):
         validators=[MaxValueValidator(100), MinValueValidator(0)],
         default=0,
     )
-    attachment = models.FileField(upload_to='assignments/', blank=True, null=True)
+    attachment = models.FileField(upload_to='submissions/', blank=True, null=True)
 
     def __str__(self):
         return f'{self.student} - {self.assignment}'

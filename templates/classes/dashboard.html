@@ -1,4 +1,4 @@
-{% extends 'partials/anonymous_base.html' %}
+{% extends 'partials/base.html' %}
 {% load static %}
 
 {% block content %}
@@ -38,66 +38,13 @@
                 <div class="bg-white rounded-xl shadow-lg p-6">
                     <!-- Upcoming Sessions -->
                     <h3 class="font-bold text-slate-800 mb-4">Upcoming Sessions</h3>
-                    <div class="divide-y divide-gray-200">
-                        {% if cohort.upcoming_sessions %}
-                            {% for session in cohort.upcoming_sessions %}
-                            <div class="py-4">
-                                <div class="flex justify-between items-start">
-                                    <div>
-                                        <h4 class="font-semibold text-slate-800">{{ session.name }}</h4>
-                                        {% if session.meeting_url %}
-                                        <a class="flex flex-row items-center gap-x-1 text-sm text-primary-700 hover:text-primary-900" href="#">
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" />
-                                            </svg>
-                                            Join Zoom Meeting
-                                        </a>
-                                        {% endif %}
-                                    </div>
-                                    <div class="text-right">
-                                        <p class="text-primary-600 font-semibold">{{ session.start_time|date:"M j, Y" }}</p>
-                                        <p class="text-sm text-slate-600">{{ session.start_time|time:"g:i A" }} - {{ session.end_time|time:"g:i A" }}</p>
-                                    </div>
-                                </div>
-                            </div>
-                            {% endfor %}
-                            <div class="mt-6 text-right">
-                                <a href="#" class="text-sm text-primary-700 hover:text-primary-600 font-medium">View All Sessions →</a>
-                            </div>
-                        {% else %}
-                            <div class="flex items-center justify-center h-32 text-slate-500">
-                                No Upcoming Sessions
-                            </div>
-                        {% endif %}
-                    </div>
+                    {% include 'classes/sessions_component.html' %}
                 </div>
 
                 <!-- Right Column - Assignments Due -->
                 <div class="bg-white rounded-xl shadow-lg p-6">
                     <h2 class="text-xl font-bold text-slate-800 mb-4">Upcoming Assignments</h2>
-                    <div class="space-y-4">
-                        {% if cohort.upcoming_assignments %}
-                            {% for assignment in cohort.upcoming_assignments %}
-                            <div class="flex justify-between p-3 border border-gray-200 rounded-lg">
-                                <div>
-                                    <h3 class="font-semibold text-slate-800">{{ assignment.name }}</h3>
-                                    <p class="text-sm text-slate-600">{{ cohort.name }}</p>
-                                </div>
-                                <div class="text-right">
-                                    <p class="font-medium text-primary-600">{{ assignment.due_date|date:"M j, Y" }}</p>
-                                    <p class="text-sm text-slate-600">{{ assignment.due_date|time:"g:i A" }}</p>
-                                </div>
-                            </div>
-                            {% endfor %}
-                            <div class="mt-6 text-right">
-                                <a href="#" class="text-sm text-primary-700 hover:text-primary-600 font-medium">View All Assignments →</a>
-                            </div>
-                        {% else %}
-                            <div class="flex items-center justify-center h-32 text-slate-500">
-                                No Upcoming Assignments
-                            </div>
-                        {% endif %}
-                    </div>
+                    {% include 'classes/assignments_component.html' %}
                 </div>
             </div>
         </div>

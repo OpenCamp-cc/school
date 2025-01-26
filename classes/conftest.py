@@ -9,3 +9,13 @@ def user():
     user.set_password('1234')
     user.save()
     return user
+
+
+@pytest.fixture
+def teacher():
+    user = User.objects.create(
+        username='teacher@b.com', first_name='A', email='a@b.com', is_staff=True
+    )
+    user.set_password('1234')
+    user.save()
+    return user

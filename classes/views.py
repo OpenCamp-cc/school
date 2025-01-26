@@ -1,5 +1,5 @@
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -37,34 +37,7 @@ def search_classes(request: HttpRequest) -> HttpResponse:
     return render(request, 'classes/search_classes.html')
 
 
-def teacher_classes(request: HttpRequest, user_id: int) -> HttpResponse:
-    user = get_object_or_404(User, pk=user_id)
-    classes = LiveCohort.objects.filter(teacher=user).prefetch_related('sessions')
-
-    return render(
-        request,
-        'classes/teacher_classes.html',
-        {'user': user, 'classes': classes},
-    )
-
-
-@login_required
-def add_live_cohort(request: AuthenticatedHttpRequest) -> HttpResponse:
-    if request.method == 'POST':
-        form = LiveCohortForm(request.POST)
-        if form.is_valid():
-            try:
-                cohort = form.save(teacher=request.user)
-                return redirect('classes:teacher-classes', user_id=request.user.id)
-            except Exception as e:
-                messages.error(request, 'Failed to create cohort. Please try again.')
-    else:
-        form = LiveCohortForm()
-
-    return render(request, 'classes/add_live_cohort.html', {'form': form})
-
-
-@login_required
+@user_passes_test(lambda u: u.is_staff)
 def teacher_dashboard(request: HttpRequest) -> HttpResponse:
     user = request.user
 
@@ -90,6 +63,26 @@ def teacher_dashboard(request: HttpRequest) -> HttpResponse:
     }
 
     return render(request, 'classes/teacher-dashboard.html', context)
+
+
+@user_passes_test(lambda u: u.is_staff)
+def add_live_cohort(request: AuthenticatedHttpRequest) -> HttpResponse:
+    if request.method == 'POST':
+        form = LiveCohortForm(request.POST)
+        if form.is_valid():
+            try:
+                cohort = form.save(teacher=request.user)
+                return redirect(
+                    'classes:teacher-dashboard'
+                )  # Changed from teacher-classes
+            except Exception as e:
+                messages.error(request, 'Failed to create cohort. Please try again.')
+        else:
+            print(form.errors)
+    else:
+        form = LiveCohortForm()
+
+    return render(request, 'classes/add_live_cohort.html', {'form': form})
 
 
 @login_required

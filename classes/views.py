@@ -5,13 +5,12 @@ from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
-from django.views.generic import TemplateView
 
 from users.http import AuthenticatedHttpRequest
 from users.models import User
 
 from .forms import LiveCohortForm
-from .models import LiveCohort
+from .models import LiveCohort, LiveCohortAssignment, LiveCohortAssignmentSubmission
 
 
 def homepage(request: HttpRequest) -> HttpResponse:
@@ -102,20 +101,22 @@ def student_dashboard(request: HttpRequest) -> HttpResponse:
 
     # Get upcoming sessions from live cohorts
     now = timezone.now()
-    upcoming_sessions = []
+    upcoming_sessions = {}
+    upcoming_assignments = {}
+
     for cohort in live_cohorts:
         cohort_sessions = cohort.sessions.filter(start_time__gt=now).order_by(
             'start_time'
-        )
-        upcoming_sessions.extend(cohort_sessions)
+        )[:4]
+        cohort.upcoming_sessions = list(cohort_sessions)
 
-    # Sort sessions by start time and limit to next 10
-    upcoming_sessions.sort(key=lambda x: x.start_time)
-    upcoming_sessions = upcoming_sessions[:10]
+        assignments = LiveCohortAssignment.objects.filter(
+            cohort=cohort, due_date__gt=now
+        ).order_by('due_date')[:4]
+        cohort.upcoming_assignments = list(assignments)
 
     context = {
-        'live_cohorts': live_cohorts,
-        'upcoming_sessions': upcoming_sessions,
+        'cohorts': live_cohorts,
     }
 
     return render(request, 'classes/dashboard.html', context)

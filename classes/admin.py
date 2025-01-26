@@ -2,6 +2,7 @@ from django.contrib import admin
 
 from .models import (
     LiveCohort,
+    LiveCohortAssignment,
     LiveCohortRegistration,
     LiveCohortSession,
 )
@@ -19,4 +20,9 @@ class LiveCohortSessionAdmin(admin.ModelAdmin):
 
 @admin.register(LiveCohortRegistration)
 class LiveCohortRegistrationAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(LiveCohortAssignment)
+class LiveCohortAssignmentAdmin(admin.ModelAdmin):
     pass

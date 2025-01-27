@@ -14,4 +14,9 @@ urlpatterns = [
     path('teacher/dashboard/live/add', views.add_live_cohort, name='add-live-cohort'),
     path('teacher/dashboard/', views.teacher_dashboard, name='teacher-dashboard'),
     path('dashboard/', views.student_dashboard, name='student-dashboard'),
+    path('cohort/<int:id>/all-sessions', views.all_sessions, name='all-sessions'),
+    path(
+        'cohort/<int:id>/all-assignments', views.all_assignments, name='all-assignments'
+    ),
+    path('assignment/<int:id>', views.view_assignment, name='assignment'),
 ]

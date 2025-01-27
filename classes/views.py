@@ -86,7 +86,7 @@ def add_live_cohort(request: AuthenticatedHttpRequest) -> HttpResponse:
 
 
 @login_required
-def student_dashboard(request: HttpRequest) -> HttpResponse:
+def student_dashboard(request: AuthenticatedHttpRequest) -> HttpResponse:
     user = request.user
 
     # Get all classes enrolled by the user
@@ -113,3 +113,55 @@ def student_dashboard(request: HttpRequest) -> HttpResponse:
     }
 
     return render(request, 'classes/dashboard.html', context)
+
+
+@login_required
+def all_sessions(request: AuthenticatedHttpRequest, id: int) -> HttpResponse:
+    user = request.user
+    cohort = get_object_or_404(LiveCohort.objects.filter(students=user), id=id)
+
+    cohort_sessions = cohort.sessions.order_by('start_time')
+    cohort.upcoming_sessions = list(cohort_sessions)
+    context = {
+        'cohort': cohort,
+        'all': True,
+    }
+
+    return render(request, 'classes/sessions_component.html', context)
+
+
+@login_required
+def all_assignments(request: AuthenticatedHttpRequest, id: int) -> HttpResponse:
+    user = request.user
+    cohort = get_object_or_404(LiveCohort.objects.filter(students=user), id=id)
+
+    cohort_assignments = cohort.assignments.order_by('due_date')
+    cohort.upcoming_assignments = list(cohort_assignments)
+    context = {
+        'cohort': cohort,
+        'all': True,
+    }
+
+    return render(request, 'classes/assignments_component.html', context)
+
+
+@login_required
+def view_assignment(request: HttpRequest, id: int) -> HttpResponse:
+    assignment = get_object_or_404(LiveCohortAssignment, id=id)
+    user = request.user
+
+    # Check if user is enrolled in the cohort
+    if user not in assignment.cohort.students.all():
+        return redirect('classes:student-dashboard')
+
+    # Get submission if exists
+    submission = LiveCohortAssignmentSubmission.objects.filter(
+        assignment=assignment, student=user
+    ).first()
+
+    context = {
+        'assignment': assignment,
+        'submission': submission,
+    }
+
+    return render(request, 'classes/assignment.html', context)

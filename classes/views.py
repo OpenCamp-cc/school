@@ -1,16 +1,19 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 
 from users.http import AuthenticatedHttpRequest
-from users.models import User
 
 from .forms import LiveCohortForm
-from .models import LiveCohort, LiveCohortAssignment, LiveCohortAssignmentSubmission
+from .models import (
+    LiveCohort,
+    LiveCohortAssignment,
+    LiveCohortAssignmentSubmission,
+    LiveCohortQuiz,
+)
 
 
 def homepage(request: HttpRequest) -> HttpResponse:
@@ -108,6 +111,13 @@ def student_dashboard(request: AuthenticatedHttpRequest) -> HttpResponse:
         ).order_by('due_date')[:4]
         cohort.upcoming_assignments = list(assignments)
 
+        cohort_quizzes = (
+            LiveCohortQuiz.objects.filter(cohort=cohort, due_date__gt=now)
+            .select_related('quiz')
+            .order_by('due_date')[:4]
+        )
+        cohort.upcoming_quizzes = list(cohort_quizzes)
+
     context = {
         'cohorts': live_cohorts,
     }
@@ -143,6 +153,21 @@ def all_assignments(request: AuthenticatedHttpRequest, id: int) -> HttpResponse:
     }
 
     return render(request, 'classes/assignments_component.html', context)
+
+
+@login_required
+def all_quizzes(request: AuthenticatedHttpRequest, id: int) -> HttpResponse:
+    user = request.user
+    cohort = get_object_or_404(LiveCohort.objects.filter(students=user), id=id)
+
+    cohort_quizzes = cohort.quizzes.order_by('due_date')
+    cohort.upcoming_quizzes = list(cohort_quizzes)
+    context = {
+        'cohort': cohort,
+        'all': True,
+    }
+
+    return render(request, 'classes/quizzes_component.html', context)
 
 
 @login_required

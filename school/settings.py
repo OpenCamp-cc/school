@@ -49,6 +49,8 @@ INSTALLED_APPS = [
     'integrations',
     'landing',
     'classes',
+    'school',
+    'quizzes',
 ]
 
 MIDDLEWARE = [

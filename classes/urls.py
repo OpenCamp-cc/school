@@ -19,4 +19,5 @@ urlpatterns = [
         'cohort/<int:id>/all-assignments', views.all_assignments, name='all-assignments'
     ),
     path('assignment/<int:id>', views.view_assignment, name='assignment'),
+    path('cohort/<int:id>/all-quizzes/', views.all_quizzes, name='all-quizzes'),
 ]

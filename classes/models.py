@@ -6,6 +6,7 @@ from django.db import models
 from django.utils import timezone
 
 from db.models import BaseModel, CreatedUpdatedMixin
+from quizzes.models import Quiz
 from users.models import User
 
 
@@ -29,9 +30,11 @@ class LiveCohort(BaseModel, CreatedUpdatedMixin):
     students = models.ManyToManyField(User, through='LiveCohortRegistration')
     sessions: models.QuerySet['LiveCohortSession']
     assignments: models.QuerySet['LiveCohortAssignment']
+    quizzes = models.ManyToManyField('quizzes.Quiz', through='LiveCohortQuiz')
 
     upcoming_assignments: List['LiveCohortAssignment']
     upcoming_sessions: List['LiveCohortSession']
+    upcoming_quizzes: List['Quiz']
     progress: int | None = None
 
     def course_progress(self):
@@ -138,3 +141,17 @@ class LiveCohortAssignmentSubmission(BaseModel, CreatedUpdatedMixin):
 
     def __str__(self):
         return f'{self.student} - {self.assignment}'
+
+
+class LiveCohortQuiz(BaseModel, CreatedUpdatedMixin):
+    cohort = models.ForeignKey(
+        LiveCohort, on_delete=models.CASCADE, related_name='cohort_quizzes'
+    )
+    quiz = models.ForeignKey('quizzes.Quiz', on_delete=models.CASCADE)
+
+    due_date = models.DateTimeField()  
+    is_required = models.BooleanField(default=True)
+    points = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        unique_together = ['cohort', 'quiz']

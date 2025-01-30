@@ -149,9 +149,34 @@ class LiveCohortQuiz(BaseModel, CreatedUpdatedMixin):
     )
     quiz = models.ForeignKey('quizzes.Quiz', on_delete=models.CASCADE)
 
-    due_date = models.DateTimeField()  
+    due_date = models.DateTimeField()
     is_required = models.BooleanField(default=True)
-    points = models.PositiveIntegerField(default=0)
 
     class Meta:
         unique_together = ['cohort', 'quiz']
+
+    @property
+    def total_points(self):
+        choice_points = (
+            self.quiz.choice_questions.aggregate(total=models.Sum('points'))['total']
+            or 0
+        )
+        text_points = (
+            self.quiz.text_questions.aggregate(total=models.Sum('points'))['total'] or 0
+        )
+        return choice_points + text_points
+
+
+class LiveCohortQuizSubmission(BaseModel, CreatedUpdatedMixin):
+    cohort_quiz = models.ForeignKey(
+        LiveCohortQuiz, on_delete=models.CASCADE, related_name='submissions'
+    )
+    quiz_attempt = models.OneToOneField(
+        'quizzes.QuizAttempt',
+        on_delete=models.CASCADE,
+        related_name='cohort_submission',
+    )
+    submission_time = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'{self.quiz_attempt.student} - {self.cohort_quiz.quiz.name}'

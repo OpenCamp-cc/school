@@ -1,0 +1,31 @@
+<div id='cohort_{{ cohort.id }}_quizzes' class='space-y-4'>
+    {% if cohort.upcoming_quizzes %}
+        {% for cohort_quiz in cohort.upcoming_quizzes %}
+        <a class='flex justify-between p-3 border border-gray-200 rounded-lg hover:bg-primary-50'
+            href='{% url 'classes:quiz' cohort_quiz.quiz.id %}'>
+            <div>
+                <h3 class='font-semibold text-slate-800'>{{ cohort_quiz.quiz.name }}</h3>
+                <p class='text-sm text-slate-600'>{{ cohort.name }}</p>
+            </div>
+            <div class='text-right'>
+                <p class='font-bold text-primary-700'>{{ cohort_quiz.due_date|date:'M j, Y' }}</p>
+                <p class='text-sm text-slate-700'>{{ cohort_quiz.due_date|time:'g:i A' }}</p>
+            </div>
+        </a>
+        {% endfor %}
+        {% if not all %}
+        <div class='mt-6 text-right'>
+            <div hx-get='{% url 'classes:all-quizzes' cohort.id %}' 
+                 hx-swap='innerHTML' 
+                 hx-target='#cohort_{{ cohort.id }}_quizzes' 
+                 class='text-sm text-primary-700 hover:text-primary-600 font-medium hover:cursor-pointer'>
+                View All Quizzes
+            </div>
+        </div>
+        {% endif %}
+    {% else %}
+        <div class='flex items-center justify-center h-32 text-slate-500'>
+            No Upcoming Quizzes
+        </div>
+    {% endif %}
+</div>

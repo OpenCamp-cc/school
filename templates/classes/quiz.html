@@ -47,56 +47,58 @@
                                 {{ forloop.counter }}. {{ question.question.content }}
                                 <span class="text-slate-500 ml-2">({{ question.points }} point{% if question.points > 1 %}s{% endif %})</span>
                             </p>
-                            {% with submission=question.question.latest_submission|first %}
-                            {% if submission %}
+                            {% if latest_attempt and latest_attempt.filtered_choice_submissions %}
+                                {% for submission in latest_attempt.filtered_choice_submissions %}
+                                    {% if submission.question == question.question %}
+                                        <div class="space-y-3">
+                                            {% for option in question.question.options.all %}
+                                            <label class="flex items-center space-x-3 
+                                                {% if option.is_correct and option in submission.selected_options.all %}
+                                                    text-green-600 font-semibold
+                                                {% elif option.is_correct and option not in submission.selected_options.all %}
+                                                    text-green-600 opacity-50
+                                                {% elif not option.is_correct and option in submission.selected_options.all %}
+                                                    text-red-600
+                                                {% endif %}">
+                                                <input type="{% if question.question.is_multiple_choice %}checkbox{% else %}radio{% endif %}" 
+                                                    name="choice_{{ question.question.id }}"
+                                                    value="{{ option.id }}"
+                                                    class="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                                                    disabled
+                                                    {% if option in submission.selected_options.all %}checked{% endif %}>
+                                                <span>{{ option.content }}</span>
+                                                
+                                                {% if option.is_correct and option in submission.selected_options.all %}
+                                                    <span class="ml-2 text-green-600">✓</span>
+                                                {% elif not option.is_correct and option in submission.selected_options.all %}
+                                                    <span class="ml-2 text-red-600">✗</span>
+                                                {% endif %}
+                                            </label>
+                                            {% endfor %}
+                                            
+                                            <div class="mt-2 text-sm {% if submission.is_correct %}text-green-600{% else %}text-red-600{% endif %}">
+                                                {% if submission.is_correct %}
+                                                    Correct ✓
+                                                {% else %}
+                                                    Incorrect ✗
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            {% else %}
                                 <div class="space-y-3">
                                     {% for option in question.question.options.all %}
-                                    <label class="flex items-center space-x-3 
-                                        {% if option.is_correct and option in submission.selected_options.all %}
-                                            text-green-600 font-semibold
-                                        {% elif option.is_correct and option not in submission.selected_options.all %}
-                                            text-red-600 opacity-50
-                                        {% elif not option.is_correct and option in submission.selected_options.all %}
-                                            text-red-600
-                                        {% endif %}">
+                                    <label class="flex items-center space-x-3">
                                         <input type="{% if question.question.is_multiple_choice %}checkbox{% else %}radio{% endif %}" 
                                             name="choice_{{ question.question.id }}"
                                             value="{{ option.id }}"
-                                            class="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-                                            disabled
-                                            {% if option in submission.selected_options.all %}checked{% endif %}>
+                                            class="rounded border-gray-300 text-primary-600 focus:ring-primary-500">
                                         <span>{{ option.content }}</span>
-                                        
-                                        {% if option.is_correct and option in submission.selected_options.all %}
-                                            <span class="ml-2 text-green-600">✓</span>
-                                        {% elif not option.is_correct and option in submission.selected_options.all %}
-                                            <span class="ml-2 text-red-600">✗</span>
-                                        {% endif %}
                                     </label>
                                     {% endfor %}
-                                    
-                                    <div class="mt-2 text-sm {% if submission.is_correct %}text-green-600{% else %}text-red-600{% endif %}">
-                                        {% if submission.is_correct %}
-                                            Correct ✓
-                                        {% else %}
-                                            Incorrect ✗
-                                        {% endif %}
-                                    </div>
                                 </div>
-                            {% else %}
-                                    <div class="space-y-3">
-                                        {% for option in question.question.options.all %}
-                                        <label class="flex items-center space-x-3">
-                                            <input type="{% if question.question.is_multiple_choice %}checkbox{% else %}radio{% endif %}" 
-                                                name="choice_{{ question.question.id }}"
-                                                value="{{ option.id }}"
-                                                class="rounded border-gray-300 text-primary-600 focus:ring-primary-500">
-                                            <span>{{ option.content }}</span>
-                                        </label>
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            {% endwith %}
+                            {% endif %}
                         </div>
                         {% endfor %}
 
@@ -108,51 +110,52 @@
                                 <span class="text-slate-500 ml-2">({{ question.points }} point{% if question.points > 1 %}s{% endif %})</span>
                             </p>
                             
-                            {% with submission=question.question.latest_submission|first %}
-                                {% if submission %}
-                                    <div>
-                                        <input
-                                            type="text"
-                                            name="text_{{ question.question.id }}"
-                                            class="block w-full rounded-lg border border-gray-300 shadow-sm 
-                                                p-2 
-                                                focus:border-primary-600 
-                                                focus:ring-primary-600 
-                                                focus:ring-1 
-                                                focus:outline-none 
-                                                caret-primary-600"
-                                            placeholder="Type your answer here..."
-                                            value="{{ submission.answer }}"
-                                            disabled>
-                                        
-                                        <div class="mt-2 text-sm 
-                                            {% if submission.is_correct %}text-green-600{% else %}text-red-600{% endif %}">
-                                            {% if submission.is_correct %}
-                                                Correct ✓
-                                            {% else %}
-                                                Incorrect ✗
-                                                {% if question.question.explanation %}
-                                                    <div class="mt-2 text-slate-700">
-                                                        <strong>Explanation:</strong> {{ question.question.explanation }}
-                                                    </div>
+                            {% if latest_attempt and latest_attempt.filtered_text_submissions %}
+                                {% for submission in latest_attempt.filtered_text_submissions %}
+                                    {% if submission.question == question.question %}
+                                        <div>
+                                            <input
+                                                type="text"
+                                                name="text_{{ question.question.id }}"
+                                                class="block w-full rounded-lg border border-gray-300 shadow-sm 
+                                                    p-2 
+                                                    focus:border-primary-600 
+                                                    focus:ring-primary-600 
+                                                    focus:ring-1 
+                                                    focus:outline-none 
+                                                    caret-primary-600"
+                                                placeholder="Type your answer here..."
+                                                value="{{ submission.answer }}"
+                                                disabled>
+                                            
+                                            <div class="mt-2 text-sm {% if submission.is_correct %}text-green-600{% else %}text-red-600{% endif %}">
+                                                {% if submission.is_correct %}
+                                                    Correct ✓
+                                                {% else %}
+                                                    Incorrect ✗
+                                                    {% if question.question.explanation %}
+                                                        <div class="mt-2 text-slate-700">
+                                                            <strong>Explanation:</strong> {{ question.question.explanation }}
+                                                        </div>
+                                                    {% endif %}
                                                 {% endif %}
-                                            {% endif %}
+                                            </div>
                                         </div>
-                                    </div>
-                                {% else %}
-                                    <input
-                                        type="text"
-                                        name="text_{{ question.question.id }}"
-                                        class="block w-full rounded-lg border border-gray-300 shadow-sm 
-                                            p-2 
-                                            focus:border-primary-600 
-                                            focus:ring-primary-600 
-                                            focus:ring-1 
-                                            focus:outline-none 
-                                            caret-primary-600"
-                                        placeholder="Type your answer here...">
-                                {% endif %}
-                            {% endwith %}
+                                    {% endif %}
+                                {% endfor %}
+                            {% else %}
+                                <input
+                                    type="text"
+                                    name="text_{{ question.question.id }}"
+                                    class="block w-full rounded-lg border border-gray-300 shadow-sm 
+                                        p-2 
+                                        focus:border-primary-600 
+                                        focus:ring-primary-600 
+                                        focus:ring-1 
+                                        focus:outline-none 
+                                        caret-primary-600"
+                                    placeholder="Type your answer here...">
+                            {% endif %}
                         </div>
                         {% endfor %}
                     </div>
@@ -164,7 +167,7 @@
                 <div class="bg-white rounded-xl shadow-lg px-4 py-6">
                     <h2 class="text-xl font-bold text-slate-800 mb-4">Quiz Status</h2>
                     
-                    {% if cohort_quiz.latest_submission %}
+                    {% if latest_attempt %}
                         <div class="p-4 bg-green-50 rounded-lg mb-6">
                             <div class="flex items-center gap-x-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-green-600">
@@ -172,7 +175,7 @@
                                 </svg>
                                 <span class="text-green-700">Completed</span>
                             </div>
-                            <p class="text-sm text-green-600 mt-1">Score: {{ cohort_quiz.latest_submission.0.quiz_attempt.score }}</p>
+                            <p class="text-sm text-green-600 mt-1">Score: {{ latest_attempt.score }}</p>
                         </div>
                         
                         <div class="mb-4">
@@ -181,25 +184,25 @@
                                 <p class="text-sm text-slate-600">
                                     <span class="font-medium">Attempt:</span>
                                     <span class="text-primary-600">
-                                        {{ cohort_quiz.latest_submission.0.quiz_attempt.completed_at|date:"Y-m-d" }} 
-                                        {{ cohort_quiz.latest_submission.0.quiz_attempt.completed_at|time:"g:i A" }}
+                                        {{ latest_attempt.completed_at|date:"Y-m-d" }} 
+                                        {{ latest_attempt.completed_at|time:"g:i A" }}
                                     </span>
                                 </p>
                                 <p class="text-sm text-slate-600 mt-1">
                                     <span class="font-medium">Score:</span>
-                                    <span class="text-primary-600">{{ cohort_quiz.latest_submission.0.quiz_attempt.score }}</span>
+                                    <span class="text-primary-600">{{ latest_attempt.score }}</span>
                                 </p>
                             </div>
                         </div>
                     {% endif %}
 
-                    {% if cohort_quiz.quiz.allow_multiple_attempts or not cohort_quiz.latest_submission %}
+                    {% if cohort_quiz.quiz.allow_multiple_attempts or not latest_attempt %}
                         <p class="text-sm text-slate-600 mb-2">
                             <span class="font-medium">Time Remaining:</span> 
                             <span id="countdown" class="text-primary-600"></span>
                         </p>
                         <button type="submit" class="w-full bg-primary-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
-                            {% if cohort_quiz.latest_submission %}
+                            {% if latest_attempt %}
                                 Submit Another Attempt
                             {% else %}
                                 Submit Quiz

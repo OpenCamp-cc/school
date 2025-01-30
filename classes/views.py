@@ -217,41 +217,11 @@ def view_quiz(request: HttpRequest, id: int) -> HttpResponse:
                 'quiz__choice_questions',
                 queryset=QuizChoiceQuestion.objects.select_related(
                     'question'
-                ).prefetch_related(
-                    'question__options',
-                    Prefetch(
-                        'question__choicequestionsubmission_set',
-                        queryset=ChoiceQuestionSubmission.objects.filter(
-                            quiz_attempt__student=user, quiz_attempt__quiz=quiz
-                        )
-                        .select_related('quiz_attempt')
-                        .order_by('-quiz_attempt__completed_at'),
-                        to_attr='latest_submission',
-                    ),
-                ),
+                ).prefetch_related('question__options'),
             ),
             Prefetch(
                 'quiz__text_questions',
-                queryset=QuizTextQuestion.objects.select_related(
-                    'question'
-                ).prefetch_related(
-                    Prefetch(
-                        'question__textquestionsubmission_set',
-                        queryset=TextQuestionSubmission.objects.filter(
-                            quiz_attempt__student=user, quiz_attempt__quiz=quiz
-                        )
-                        .select_related('quiz_attempt')
-                        .order_by('-quiz_attempt__completed_at'),
-                        to_attr='latest_submission',
-                    )
-                ),
-            ),
-            Prefetch(
-                'submissions',
-                queryset=LiveCohortQuizSubmission.objects.select_related('quiz_attempt')
-                .filter(quiz_attempt__student=user)
-                .order_by('-quiz_attempt__completed_at'),
-                to_attr='latest_submission',
+                queryset=QuizTextQuestion.objects.select_related('question'),
             ),
         )
         .first()
@@ -264,37 +234,80 @@ def view_quiz(request: HttpRequest, id: int) -> HttpResponse:
     if user not in cohort_quiz.cohort.students.all():
         return redirect('classes:student-dashboard')
 
-    if request.method == 'POST':
-        print('POST')
-        # Check if multiple attempts are allowed
-        latest_submission = (
-            cohort_quiz.latest_submission[0] if cohort_quiz.latest_submission else None
+    # Get submission if exists
+    latest_attempt = (
+        QuizAttempt.objects.filter(quiz=quiz, student=user)
+        .prefetch_related(
+            Prefetch(
+                'choice_submissions',
+                queryset=ChoiceQuestionSubmission.objects.select_related('question')
+                .filter(
+                    question__in=[
+                        q.question for q in cohort_quiz.quiz.choice_questions.all()
+                    ],
+                    quiz_attempt__completed_at__in=QuizAttempt.objects.filter(
+                        quiz=quiz, student=user
+                    ).values('completed_at'),
+                )
+                .prefetch_related('selected_options')
+                .order_by('question', '-quiz_attempt__completed_at'),
+                to_attr='filtered_choice_submissions',
+            ),
+            Prefetch(
+                'text_submissions',
+                queryset=TextQuestionSubmission.objects.select_related('question')
+                .filter(
+                    question__in=[
+                        q.question for q in cohort_quiz.quiz.text_questions.all()
+                    ],
+                    quiz_attempt__completed_at__in=QuizAttempt.objects.filter(
+                        quiz=quiz, student=user
+                    ).values('completed_at'),
+                )
+                .order_by('question', '-quiz_attempt__completed_at'),
+                to_attr='filtered_text_submissions',
+            ),
         )
-        if latest_submission and not cohort_quiz.quiz.allow_multiple_attempts:
+        .order_by('-completed_at')
+        .first()
+    )
+
+    if request.method == 'POST':
+        # Check if multiple attempts are allowed
+        if latest_attempt and not cohort_quiz.quiz.allow_multiple_attempts:
             messages.error(request, 'Multiple attempts are not allowed for this quiz.')
             return redirect('classes:student-dashboard')
 
         try:
             with transaction.atomic():
-                print(1)
                 attempt = QuizAttempt.objects.create(
                     quiz=cohort_quiz.quiz, student=user
                 )
                 earned_points = 0
+
+                to_be_created_choice_submissions = []
+                choice_submissions_options = []
+                to_be_created_text_submissions = []
 
                 # Handle choice questions
                 for quiz_question in cohort_quiz.quiz.choice_questions.all():
                     question = quiz_question.question
                     option_ids = request.POST.getlist(f'choice_{question.id}')
 
-                    selected_options = QuestionOption.objects.filter(id__in=option_ids)
-                    correct_options = set(question.options.filter(is_correct=True))
+                    selected_options = question.options.filter(id__in=option_ids)
+                    correct_options = set(
+                        o for o in question.options.all() if o.is_correct
+                    )
                     is_correct = set(selected_options) == correct_options
 
-                    submission = ChoiceQuestionSubmission.objects.create(
-                        quiz_attempt=attempt, question=question, is_correct=is_correct
+                    to_be_created_choice_submissions.append(
+                        ChoiceQuestionSubmission(
+                            quiz_attempt=attempt,
+                            question=question,
+                            is_correct=is_correct,
+                        )
                     )
-                    submission.selected_options.set(selected_options)
+                    choice_submissions_options.append(selected_options)
 
                     if is_correct:
                         earned_points += quiz_question.points
@@ -319,15 +332,32 @@ def view_quiz(request: HttpRequest, id: int) -> HttpResponse:
                                 in [ans.lower() for ans in question.alternative_answers]
                             )
 
-                    TextQuestionSubmission.objects.create(
-                        quiz_attempt=attempt,
-                        question=question,
-                        answer=answer,
-                        is_correct=is_correct,
+                    to_be_created_text_submissions.append(
+                        TextQuestionSubmission(
+                            quiz_attempt=attempt,
+                            question=question,
+                            answer=answer,
+                            is_correct=is_correct,
+                        )
                     )
 
                     if is_correct:
                         earned_points += quiz_question.points
+
+                created_choice_submissions = (
+                    ChoiceQuestionSubmission.objects.bulk_create(
+                        to_be_created_choice_submissions
+                    )
+                )
+                # Set many-to-many relations for choice submissions and their options
+                for submission, options in zip(
+                    created_choice_submissions, choice_submissions_options
+                ):
+                    submission.selected_options.set(options)
+
+                TextQuestionSubmission.objects.bulk_create(
+                    to_be_created_text_submissions
+                )
 
                 # Calculate and save final score
                 attempt.score = earned_points
@@ -348,4 +378,8 @@ def view_quiz(request: HttpRequest, id: int) -> HttpResponse:
             )
             return redirect('classes:quiz', id=id)
 
-    return render(request, 'classes/quiz.html', {'cohort_quiz': cohort_quiz})
+    return render(
+        request,
+        'classes/quiz.html',
+        {'cohort_quiz': cohort_quiz, 'latest_attempt': latest_attempt},
+    )

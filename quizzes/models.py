@@ -106,9 +106,8 @@ class QuizAttempt(BaseModel, CreatedUpdatedMixin):
         null=True,
         blank=True,
     )
-    score = models.FloatField(null=True, blank=True)
+    score = models.IntegerField(null=True, blank=True)
     completed_at = models.DateTimeField(null=True, blank=True)
-    attempt_number = models.PositiveSmallIntegerField(default=1)
 
 
 class ChoiceQuestionSubmission(BaseModel, CreatedUpdatedMixin):

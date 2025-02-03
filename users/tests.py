@@ -20,6 +20,7 @@ def test_users():
 def test_signup(client, user1):
     template = 'users/signup.html'
     url = reverse('users:signup')
+    dashboard_url = reverse('classes:student-dashboard')
     resp = client.get(url)
     assertTemplateUsed(resp, template)
 
@@ -49,18 +50,19 @@ def test_signup(client, user1):
 
     data['email'] = 'somethingnew@something.com'
     resp = client.post(url, data)
-    assertRedirects(resp, '/', fetch_redirect_response=False)
+    assertRedirects(resp, dashboard_url, fetch_redirect_response=False)
 
     client.logout()
     client.force_login(user1)
     resp = client.get(url)
-    assertRedirects(resp, '/', fetch_redirect_response=False)
+    assertRedirects(resp, dashboard_url, fetch_redirect_response=False)
 
 
 @pytest.mark.django_db
 def test_login(client, user1):
     template = 'users/login.html'
     url = reverse('users:login')
+    dashboard_url = reverse('classes:student-dashboard')
     resp = client.get(url)
     assertTemplateUsed(resp, template)
 
@@ -83,12 +85,12 @@ def test_login(client, user1):
     data['email'] = user1.email
     data['password'] = '1234'
     resp = client.post(url, data)
-    assertRedirects(resp, '/', fetch_redirect_response=False)
+    assertRedirects(resp, dashboard_url, fetch_redirect_response=False)
 
     client.logout()
     client.force_login(user1)
     resp = client.get(url)
-    assertRedirects(resp, '/', fetch_redirect_response=False)
+    assertRedirects(resp, dashboard_url, fetch_redirect_response=False)
 
 
 @pytest.mark.django_db
@@ -115,6 +117,7 @@ def test_google_login_redirect(mock_get_oauth_authorization_url, client):
 def test_google_login_callback(
     mock_get_user_profile, mock_get_oauth_credentials, client
 ):
+    dashboard_url = reverse('classes:student-dashboard')
     mock_get_oauth_credentials.return_value = {
         'token': 'fake-token',
         'refresh_token': 'fake-refresh-token',
@@ -129,7 +132,7 @@ def test_google_login_callback(
     url = reverse('users:google-login-callback')
     response = client.get(url, {'code': 'fake-code'})
 
-    assertRedirects(response, '/', fetch_redirect_response=False)
+    assertRedirects(response, dashboard_url, fetch_redirect_response=False)
     user = User.objects.get(email='testuser@example.com')
     assert user.first_name == 'Test'
     assert user.last_name == 'User'

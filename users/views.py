@@ -1,9 +1,8 @@
-import json
 import os
 
 from django.contrib.auth import login, logout
-from django.http import HttpResponse
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import redirect, render
+from django.urls import reverse
 
 from integrations.google.client import GoogleAPIClient
 
@@ -21,7 +20,7 @@ google_client = GoogleAPIClient(
 
 def signup(request):
     if request.user.is_authenticated:
-        return redirect('/')
+        return redirect(reverse('classes:student-dashboard'))
 
     form = SignUpForm(request.POST or None)
 
@@ -33,14 +32,14 @@ def signup(request):
         user.save()
 
         login(request, user)
-        return redirect('/')
+        return redirect(reverse('classes:student-dashboard'))
 
     return render(request, 'users/signup.html', {'form': form})
 
 
 def login_user(request):
     if request.user.is_authenticated:
-        return redirect('/')
+        return redirect(reverse('classes:student-dashboard'))
 
     form = LoginForm(request.POST or None)
 
@@ -50,7 +49,12 @@ def login_user(request):
 
         user = User.objects.get(email=email)
         login(request, user)
-        return redirect('/')
+
+        if user.is_staff:
+            url = reverse('classes:teacher-dashboard')
+        else:
+            url = reverse('classes:student-dashboard')
+        return redirect(url)
 
     return render(
         request,
@@ -112,4 +116,8 @@ def google_login_callback(request):
     profile.save()
 
     login(request, user)
-    return redirect('/')
+    if user.is_staff:
+        url = reverse('classes:teacher-dashboard')
+    else:
+        url = reverse('classes:student-dashboard')
+    return redirect(url)

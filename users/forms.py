@@ -27,17 +27,13 @@ class LoginForm(forms.Form):
 
 
 class SignUpForm(forms.Form):
-    email = forms.EmailField()
     password = forms.CharField()
     password2 = forms.CharField()
 
     def clean(self):
         cleaned_data = super().clean()
-        email = cleaned_data.get('email')
         password = cleaned_data.get('password')
         password2 = cleaned_data.get('password2')
 
         if password != password2:
             self.add_error('password2', 'Passwords did not match.')
-        elif User.objects.filter(email=email).exists():
-            self.add_error('email', 'Email is already in use.')

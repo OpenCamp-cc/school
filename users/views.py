@@ -1,13 +1,13 @@
 import os
 
 from django.contrib.auth import login, logout
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
 from integrations.google.client import GoogleAPIClient
 
 from .forms import LoginForm, SignUpForm
-from .models import ExternalProfile, User
+from .models import ExternalProfile, SignupInvite, User
 
 google_client = GoogleAPIClient(
     client_id=os.environ.get('GOOGLE_CLIENT_ID', ''),
@@ -22,19 +22,38 @@ def signup(request):
     if request.user.is_authenticated:
         return redirect(reverse('classes:student-dashboard'))
 
+    invite_code = request.GET.get('code')
+    if not invite_code:
+        return redirect(reverse('users:login'))
+
+    try:
+        invite = SignupInvite.objects.select_related('user').get(
+            code=invite_code, invited=False
+        )
+    except SignupInvite.DoesNotExist:
+        return redirect(reverse('users:login'))
+
     form = SignUpForm(request.POST or None)
 
     if request.method == 'POST' and form.is_valid():
-        email = form.cleaned_data['email']
         password = form.cleaned_data['password']
-        user = User.objects.create(email=email, username=email)
+        user = invite.user
         user.set_password(password)
+        user.is_active = True
         user.save()
+
+        # Mark invite as used
+        invite.invited = True
+        invite.save()
 
         login(request, user)
         return redirect(reverse('classes:student-dashboard'))
+    else:
+        print(form.errors)
 
-    return render(request, 'users/signup.html', {'form': form})
+    return render(
+        request, 'users/signup.html', {'form': form, 'email': invite.user.email}
+    )
 
 
 def login_user(request):

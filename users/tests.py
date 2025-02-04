@@ -5,7 +5,7 @@ import pytest
 from django.urls import reverse
 from pytest_django.asserts import assertRedirects, assertTemplateUsed
 
-from .models import ExternalProfile, User
+from .models import ExternalProfile, SignupInvite, User
 
 
 @pytest.mark.django_db
@@ -16,43 +16,51 @@ def test_users():
         u.set_manager(u)
 
 
+@patch('users.models.plunk_client')
 @pytest.mark.django_db
-def test_signup(client, user1):
+def test_signup(pc, client, user1):
     template = 'users/signup.html'
     url = reverse('users:signup')
+    login_url = reverse('users:login')
     dashboard_url = reverse('classes:student-dashboard')
+
+    # Test redirect when no invite code is provided
     resp = client.get(url)
+    assertRedirects(resp, login_url, fetch_redirect_response=False)
+
+    # Test redirect with invalid invite code
+    resp = client.get(url + '?code=invalid')
+    assertRedirects(resp, login_url, fetch_redirect_response=False)
+
+    # Create a valid invite
+    invite_email = 'newinvite@example.com'
+    invite = SignupInvite.objects.create_invite(
+        invited_by=user1, email=invite_email, send_email=False
+    )
+    assert invite
+
+    # Test valid invite code
+    resp = client.get(url + f'?code={invite.code}')
     assertTemplateUsed(resp, template)
 
     data = {
-        'email': '',
-        'password': '',
-        'password2': '',
+        'password': '1234',
+        'password2': '1234',
     }
 
-    resp = client.post(url, data)
-    assertTemplateUsed(resp, template)
-    assert len(resp.context['form'].errors['email']) == 1
-    assert len(resp.context['form'].errors['password']) == 1
-    assert len(resp.context['form'].errors['password2']) == 1
-
-    data['password'] = '1234'
-    data['password2'] = '12345'
-    resp = client.post(url, data)
-    assertTemplateUsed(resp, template)
-    assert len(resp.context['form'].errors['password2']) == 1
-
-    data['email'] = user1.email
-    data['password2'] = data['password']
-    resp = client.post(url, data)
-    assertTemplateUsed(resp, template)
-    assert len(resp.context['form'].errors['email']) == 1
-
-    data['email'] = 'somethingnew@something.com'
-    resp = client.post(url, data)
+    # Test successful signup with valid invite
+    resp = client.post(url + f'?code={invite.code}', data)
     assertRedirects(resp, dashboard_url, fetch_redirect_response=False)
 
-    client.logout()
+    # Verify invite was marked as used
+    invite.refresh_from_db()
+    assert invite.invited is True
+
+    # Verify user was activated
+    invite.user.refresh_from_db()
+    assert invite.user.is_active is True
+
+    # Test authenticated users are redirected
     client.force_login(user1)
     resp = client.get(url)
     assertRedirects(resp, dashboard_url, fetch_redirect_response=False)

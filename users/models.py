@@ -1,9 +1,16 @@
+import os
+import uuid
+
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.db import IntegrityError, models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.urls import reverse
 
 from db.models import BaseModel, CreatedUpdatedMixin
+from integrations.plunk.client import PlunkClient
+
+plunk_client = PlunkClient(os.getenv('PLUNK_KEY', ''))
 
 
 class User(AbstractUser, CreatedUpdatedMixin):
@@ -34,6 +41,47 @@ class ExternalProfile(CreatedUpdatedMixin, BaseModel):
     user = models.OneToOneField(
         'users.User', on_delete=models.CASCADE, related_name='external_profile'
     )
+
+
+class SignupInviteManager(models.Manager):
+    def create_invite(
+        self, invited_by: User, email: str, send_email: bool
+    ) -> 'SignupInvite | None':
+        try:
+            user = User.objects.create(email=email, username=email, is_active=False)
+        except IntegrityError:
+            return None
+
+        code = self.generate_code()
+        invite = self.create(invited_by=invited_by, user=user, code=code)
+
+        server_host = os.getenv('SERVER_HOST', '')
+        signup_url = reverse('users:signup')
+        message = f'<p>You have been invited to join open camp.</p><br /><p>Click here to join: {server_host}{signup_url}?code={code}</p>'
+
+        if send_email:
+            plunk_client.send_email(
+                [email],
+                'Join our platform',
+                message,
+            )
+
+        return invite
+
+    def generate_code(self):
+        return str(uuid.uuid4()).replace('-', '')
+
+
+class SignupInvite(CreatedUpdatedMixin, BaseModel):
+    objects: SignupInviteManager = SignupInviteManager()
+    invited_by = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='invited_users'
+    )
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='signup_invites'
+    )
+    code = models.CharField(max_length=255, unique=True)
+    invited = models.BooleanField(default=False)
 
 
 @receiver(post_save, sender=User)

@@ -1,5 +1,5 @@
 {% extends 'partials/anonymous_base.html' %}
-{% load static %}
+{% load static tz %}
 
 {% block content %}
     <div class="max-w-7xl mx-auto px-4 bg-primary-50 mb-10">
@@ -31,11 +31,17 @@
                                 </svg>
                                 View / Add Students
                             </a>
-                            <a href="#" class="inline-flex items-center px-3 py-2 bg-white text-primary-700 rounded-lg hover:bg-primary-50 transition-colors text-sm">
+                            <a href="{% url 'classes:cohort-sessions' cohort.id %}" class="inline-flex items-center px-3 py-2 bg-white text-primary-700 rounded-lg hover:bg-primary-50 transition-colors text-sm">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                </svg>
+                                View / Add Sessions
+                            </a>
+                            <a href="{% url 'classes:cohort-assignments' cohort.id %}" class="inline-flex items-center px-3 py-2 bg-white text-primary-700 rounded-lg hover:bg-primary-50 transition-colors text-sm">
                                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                                 </svg>
-                                Add Assignment
+                                View / Add Assignment
                             </a>
                         </div>
                     </div>
@@ -45,24 +51,7 @@
                         <div class="bg-white rounded-xl shadow-lg p-6">
                             <h4 class="text-xl font-bold text-slate-800 mb-4">Upcoming Sessions</h4>
                             {% if cohort.upcoming_sessions %}
-                                <div class="divide-y divide-gray-200">
-                                    {% for session in cohort.upcoming_sessions %}
-                                        <div class="py-4">
-                                            <div class="flex justify-between items-start">
-                                                <div>
-                                                    <h5 class="font-semibold text-slate-800">{{ session.name }}</h5>
-                                                    {% if session.meeting_url %}
-                                                        <a href="{{ session.meeting_url }}" class="text-sm text-primary-600 hover:text-primary-700">Join Meeting</a>
-                                                    {% endif %}
-                                                </div>
-                                                <div class="text-right">
-                                                    <p class="text-primary-600 font-semibold">{{ session.start_time|date:"M d, Y" }}</p>
-                                                    <p class="text-sm text-slate-600">{{ session.start_time|time:"g:i A" }} - {{ session.end_time|time:"g:i A" }}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    {% endfor %}
-                                </div>
+                                {% include 'classes/sessions_component.html' with all='True' %}
                             {% else %}
                                 <p class="text-sm text-slate-600">No upcoming sessions</p>
                             {% endif %}
@@ -72,21 +61,7 @@
                         <div class="bg-white rounded-xl shadow-lg p-6">
                             <h4 class="text-xl font-bold text-slate-800 mb-4">Upcoming Assignments</h4>
                             {% if cohort.upcoming_assignments %}
-                                <div class="divide-y divide-gray-200">
-                                    {% for assignment in cohort.upcoming_assignments %}
-                                        <div class="py-4">
-                                            <div class="flex justify-between items-start">
-                                                <div>
-                                                    <h5 class="font-semibold text-slate-800">{{ assignment.name }}</h5>
-                                                    <p class="text-sm text-slate-600">{% if assignment.graded %}Graded{% else %}Not Graded{% endif %}</p>
-                                                </div>
-                                                <div class="text-right">
-                                                    <p class="text-primary-600 font-semibold">Due: {{ assignment.due_date|date:"M d, Y" }}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    {% endfor %}
-                                </div>
+                                {% include 'classes/assignments_component.html' with all="True" %}
                             {% else %}
                                 <p class="text-sm text-slate-600">No upcoming assignments</p>
                             {% endif %}

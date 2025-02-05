@@ -23,4 +23,29 @@ urlpatterns = [
         'cohort/<int:id>/students/remove', views.remove_student, name='remove-student'
     ),
     path('assignment/<int:id>', views.view_assignment, name='assignment'),
+    path(
+        'cohort/<int:id>/assignments',
+        views.cohort_assignments,
+        name='cohort-assignments',
+    ),
+    path(
+        'assignment/<int:id>/edit',
+        views.edit_assignment,
+        name='edit-assignment',
+    ),
+    path(
+        'cohort/<int:id>/sessions',
+        views.cohort_sessions,
+        name='cohort-sessions',
+    ),
+    path(
+        'session/<int:id>/edit',
+        views.edit_session,
+        name='edit-session',
+    ),
+    path(
+        'session/<int:id>/delete',
+        views.delete_session,
+        name='delete-session',
+    ),
 ]

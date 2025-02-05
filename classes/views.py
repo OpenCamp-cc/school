@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import Q
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -9,12 +10,18 @@ from django.utils import timezone
 from users.http import AuthenticatedHttpRequest
 from users.models import User
 
-from .forms import AddStudentForm, LiveCohortForm
+from .forms import (
+    AddAssignmentForm,
+    AddStudentForm,
+    LiveCohortForm,
+    LiveCohortSessionForm,
+)
 from .models import (
     LiveCohort,
     LiveCohortAssignment,
     LiveCohortAssignmentSubmission,
     LiveCohortRegistration,
+    LiveCohortSession,
 )
 
 
@@ -145,7 +152,7 @@ def student_dashboard(request: AuthenticatedHttpRequest) -> HttpResponse:
     user = request.user
 
     # Get all classes enrolled by the user
-    live_cohorts = LiveCohort.objects.filter(students=user)
+    live_cohorts = LiveCohort.objects.filter(Q(students=user) | Q(teacher=user))
 
     # Get upcoming sessions from live cohorts
     now = timezone.now()
@@ -155,13 +162,21 @@ def student_dashboard(request: AuthenticatedHttpRequest) -> HttpResponse:
     for cohort in live_cohorts:
         cohort_sessions = cohort.sessions.filter(start_time__gt=now).order_by(
             'start_time'
-        )[:4]
+        )[:5]
         cohort.upcoming_sessions = list(cohort_sessions)
 
         assignments = LiveCohortAssignment.objects.filter(
             cohort=cohort, due_date__gt=now
-        ).order_by('due_date')[:4]
+        ).order_by('due_date')[:5]
         cohort.upcoming_assignments = list(assignments)
+
+        if len(cohort.upcoming_sessions) > 4:
+            cohort.upcoming_sessions = cohort.upcoming_sessions[:4]
+            cohort.has_more_sessions = True
+
+        if len(cohort.upcoming_assignments) > 4:
+            cohort.upcoming_assignments = cohort.upcoming_assignments[:4]
+            cohort.has_more_assignments = True
 
     context = {
         'cohorts': live_cohorts,
@@ -173,7 +188,8 @@ def student_dashboard(request: AuthenticatedHttpRequest) -> HttpResponse:
 @login_required
 def all_sessions(request: AuthenticatedHttpRequest, id: int) -> HttpResponse:
     user = request.user
-    cohort = get_object_or_404(LiveCohort.objects.filter(students=user), id=id)
+    qs = LiveCohort.objects.filter(Q(students=user) | Q(teacher=user))
+    cohort = get_object_or_404(qs, id=id)
 
     cohort_sessions = cohort.sessions.order_by('start_time')
     cohort.upcoming_sessions = list(cohort_sessions)
@@ -188,7 +204,8 @@ def all_sessions(request: AuthenticatedHttpRequest, id: int) -> HttpResponse:
 @login_required
 def all_assignments(request: AuthenticatedHttpRequest, id: int) -> HttpResponse:
     user = request.user
-    cohort = get_object_or_404(LiveCohort.objects.filter(students=user), id=id)
+    qs = LiveCohort.objects.filter(Q(students=user) | Q(teacher=user))
+    cohort = get_object_or_404(qs, id=id)
 
     cohort_assignments = cohort.assignments.order_by('due_date')
     cohort.upcoming_assignments = list(cohort_assignments)
@@ -202,11 +219,18 @@ def all_assignments(request: AuthenticatedHttpRequest, id: int) -> HttpResponse:
 
 @login_required
 def view_assignment(request: HttpRequest, id: int) -> HttpResponse:
-    assignment = get_object_or_404(LiveCohortAssignment, id=id)
+    assignment = get_object_or_404(
+        LiveCohortAssignment.objects.select_related('cohort'), id=id
+    )
     user = request.user
 
     # Check if user is enrolled in the cohort
-    if user not in assignment.cohort.students.all():
+    if (
+        LiveCohort.objects.filter(id=assignment.cohort.id)
+        .filter(Q(students=user) | Q(teacher=user))
+        .count()
+        == 0
+    ):
         return redirect('classes:student-dashboard')
 
     # Get submission if exists
@@ -220,3 +244,112 @@ def view_assignment(request: HttpRequest, id: int) -> HttpResponse:
     }
 
     return render(request, 'classes/assignment.html', context)
+
+
+@user_passes_test(lambda u: u.is_staff)
+def cohort_assignments(request: HttpRequest, id: int) -> HttpResponse:
+    cohort = get_object_or_404(LiveCohort, id=id)
+
+    if request.method == 'POST':
+        form = AddAssignmentForm(request.POST, request.FILES)
+        if form.is_valid():
+            assignment = form.save(commit=False)
+            assignment.cohort = cohort
+            assignment.save()
+            messages.success(request, 'Assignment added successfully.')
+            return redirect('classes:cohort-assignments', id=id)
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = AddAssignmentForm()
+
+    context = {
+        'cohort': cohort,
+        'form': form,
+        'assignments': cohort.assignments.all().order_by('-due_date'),
+    }
+    return render(request, 'classes/assignments.html', context)
+
+
+@user_passes_test(lambda u: u.is_staff)
+def edit_assignment(request: HttpRequest, id: int) -> HttpResponse:
+    assignment = get_object_or_404(LiveCohortAssignment, id=id)
+
+    if request.method == 'POST':
+        form = AddAssignmentForm(request.POST, request.FILES, instance=assignment)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Assignment updated successfully.')
+            return redirect('classes:cohort-assignments', id=assignment.cohort.id)
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = AddAssignmentForm(instance=assignment)
+
+    context = {
+        'form': form,
+        'assignment': assignment,
+        'cohort': assignment.cohort,
+    }
+    return render(request, 'classes/edit_assignment.html', context)
+
+
+@user_passes_test(lambda u: u.is_staff)
+def cohort_sessions(request: HttpRequest, id: int) -> HttpResponse:
+    cohort = get_object_or_404(LiveCohort, id=id)
+
+    if request.method == 'POST':
+        form = LiveCohortSessionForm(request.POST)
+        if form.is_valid():
+            session = form.save(commit=False)
+            session.cohort = cohort
+            session.save()
+            messages.success(request, 'Session added successfully.')
+            return redirect('classes:cohort-sessions', id=id)
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = LiveCohortSessionForm()
+
+    cohort.upcoming_sessions = list(cohort.sessions.order_by('start_time'))
+    context = {
+        'cohort': cohort,
+        'form': form,
+    }
+    return render(request, 'classes/sessions.html', context)
+
+
+@user_passes_test(lambda u: u.is_staff)
+def edit_session(request: HttpRequest, id: int) -> HttpResponse:
+    session = get_object_or_404(LiveCohortSession, id=id)
+
+    if request.method == 'POST':
+        form = LiveCohortSessionForm(request.POST, instance=session)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Session updated successfully.')
+            return redirect('classes:cohort-sessions', id=session.cohort.id)
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = LiveCohortSessionForm(instance=session)
+
+    context = {
+        'form': form,
+        'session': session,
+        'cohort': session.cohort,
+    }
+    return render(request, 'classes/edit_session.html', context)
+
+
+@user_passes_test(lambda u: u.is_staff)
+def delete_session(request: HttpRequest, id: int) -> HttpResponse:
+    session = get_object_or_404(LiveCohortSession, id=id)
+    cohort_id = session.cohort.id
+
+    if request.method == 'POST':
+        session.delete()
+        messages.success(request, 'Session deleted successfully.')
+        return redirect('classes:cohort-sessions', id=cohort_id)
+
+    return redirect('classes:cohort-sessions', id=cohort_id)

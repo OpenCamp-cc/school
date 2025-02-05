@@ -153,3 +153,26 @@ filterwarnings(
     'ignore', 'The FORMS_URLFIELD_ASSUME_HTTPS transitional setting is deprecated.'
 )
 FORMS_URLFIELD_ASSUME_HTTPS = True
+
+# Logging Settings
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'level': 'INFO',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'plunk': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}

@@ -1,12 +1,15 @@
+import os
 from datetime import datetime, timedelta
 from typing import List
 
 from django.core.validators import MaxValueValidator, MinValueValidator
-from django.db import models
+from django.db import IntegrityError, models
+from django.urls import reverse
 from django.utils import timezone
 
 from db.models import BaseModel, CreatedUpdatedMixin
-from users.models import User
+from integrations.emails import plunk_client
+from users.models import SignupInvite, User
 
 
 class LiveCohort(BaseModel, CreatedUpdatedMixin):
@@ -93,7 +96,52 @@ class LiveCohortSession(BaseModel, CreatedUpdatedMixin):
         return f'{self.name} - {self.cohort} - {self.start_time} ~ {self.end_time}'
 
 
+class LiveCohortRegistrationManager(models.Manager):
+    def register_student(
+        self, cohort: LiveCohort, student: User
+    ) -> 'LiveCohortRegistration':
+        if cohort.students.count() >= cohort.max_students:
+            raise Exception('Cohort is full')
+
+        return self.create(cohort=cohort, student=student)
+
+    def register_new_student(
+        self, cohort: LiveCohort, first_name: str, last_name: str, email: str
+    ) -> 'LiveCohortRegistration':
+        if cohort.students.count() >= cohort.max_students:
+            raise Exception('Cohort is full')
+
+        try:
+            student = User.objects.create_user(
+                first_name=first_name,
+                last_name=last_name,
+                username=email,
+                email=email,
+                is_active=False,
+            )
+        except IntegrityError:
+            pass
+
+        registration = self.create(cohort=cohort, student=student)
+        invite = SignupInvite.objects.create_invite(
+            invited_by=cohort.teacher, user=student
+        )
+
+        server_host = os.getenv('SERVER_HOST', '')
+        signup_url = reverse('users:signup')
+        message = f"<p>Hi {student.first_name},</p><p>Your registration for {cohort.name} has been confirmed.</p><p>Click here to join open camp's learning platform: {server_host}{signup_url}?code={invite.code}</p><br/><p>Thanks,<br/>Victor</p>"
+
+        plunk_client.send_email(
+            [student.email],
+            f'open camp: registration for {cohort.name} confirmed',
+            message,
+        )
+
+        return registration
+
+
 class LiveCohortRegistration(BaseModel):
+    objects: LiveCohortRegistrationManager = LiveCohortRegistrationManager()
     cohort = models.ForeignKey(LiveCohort, on_delete=models.CASCADE)
     student = models.ForeignKey(User, on_delete=models.CASCADE)
 

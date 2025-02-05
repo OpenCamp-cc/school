@@ -9,8 +9,13 @@ from django.utils import timezone
 from users.http import AuthenticatedHttpRequest
 from users.models import User
 
-from .forms import LiveCohortForm
-from .models import LiveCohort, LiveCohortAssignment, LiveCohortAssignmentSubmission
+from .forms import AddStudentForm, LiveCohortForm
+from .models import (
+    LiveCohort,
+    LiveCohortAssignment,
+    LiveCohortAssignmentSubmission,
+    LiveCohortRegistration,
+)
 
 
 def homepage(request: HttpRequest) -> HttpResponse:
@@ -48,17 +53,15 @@ def teacher_dashboard(request: HttpRequest) -> HttpResponse:
     now = timezone.now()
     upcoming_sessions = []
     for cohort in live_cohorts:
-        cohort_sessions = cohort.sessions.filter(start_time__gt=now).order_by(
-            'start_time'
+        cohort.upcoming_sessions = list(
+            cohort.sessions.filter(start_time__gt=now).order_by('start_time')
         )
-        upcoming_sessions.extend(cohort_sessions)
-
-    # Sort sessions by start time and limit to next 10
-    upcoming_sessions.sort(key=lambda x: x.start_time)
-    upcoming_sessions = upcoming_sessions[:10]
+        cohort.upcoming_assignments = list(
+            cohort.assignments.filter(due_date__gt=now).order_by('due_date')
+        )
 
     context = {
-        'live_cohorts': live_cohorts,
+        'cohorts': live_cohorts,
         'upcoming_sessions': upcoming_sessions,
     }
 
@@ -83,6 +86,58 @@ def add_live_cohort(request: AuthenticatedHttpRequest) -> HttpResponse:
         form = LiveCohortForm()
 
     return render(request, 'classes/add_live_cohort.html', {'form': form})
+
+
+@user_passes_test(lambda u: u.is_staff)
+def cohort_students(request: HttpRequest, id: int) -> HttpResponse:
+    cohort = get_object_or_404(LiveCohort, id=id)
+
+    if request.method == 'POST':
+        form = AddStudentForm(request.POST)
+        if form.is_valid():
+            data = form.cleaned_data
+            try:
+                student = User.objects.get(email=data['email'])
+            except User.DoesNotExist:
+                LiveCohortRegistration.objects.register_new_student(
+                    cohort, data['first_name'], data['last_name'], data['email']
+                )
+            else:
+                LiveCohortRegistration.objects.register_student(cohort, student)
+            messages.success(request, 'Student added successfully.')
+            return redirect('classes:cohort-students', id=id)
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = AddStudentForm()
+
+    context = {
+        'cohort': cohort,
+        'form': form,
+        'students': cohort.students.all().order_by('first_name', 'last_name'),
+    }
+    return render(request, 'classes/students.html', context)
+
+
+@user_passes_test(lambda u: u.is_staff)
+def remove_student(request: HttpRequest, id: int) -> HttpResponse:
+    if request.method != 'POST':
+        return redirect('classes:cohort-students', id=id)
+
+    cohort = get_object_or_404(LiveCohort, id=id)
+    student_id = request.POST.get('student_id')
+
+    try:
+        student = User.objects.get(id=student_id)
+        if student in cohort.students.all():
+            cohort.students.remove(student)
+            messages.success(
+                request, f'{student.get_full_name()} has been removed from the class.'
+            )
+    except User.DoesNotExist:
+        pass
+
+    return redirect('classes:cohort-students', id=id)
 
 
 @login_required

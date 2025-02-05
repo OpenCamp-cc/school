@@ -8,9 +8,7 @@ from django.dispatch import receiver
 from django.urls import reverse
 
 from db.models import BaseModel, CreatedUpdatedMixin
-from integrations.plunk.client import PlunkClient
-
-plunk_client = PlunkClient(os.getenv('PLUNK_KEY', ''))
+from integrations.emails import plunk_client
 
 
 class User(AbstractUser, CreatedUpdatedMixin):
@@ -45,31 +43,12 @@ class ExternalProfile(CreatedUpdatedMixin, BaseModel):
 
 class SignupInviteManager(models.Manager):
     def create_invite(
-        self, invited_by: User, email: str, send_email: bool
-    ) -> 'SignupInvite | None':
-        try:
-            user = User.objects.create(email=email, username=email, is_active=False)
-        except IntegrityError:
-            return None
-
-        code = self.generate_code()
-        invite = self.create(invited_by=invited_by, user=user, code=code)
-
-        server_host = os.getenv('SERVER_HOST', '')
-        signup_url = reverse('users:signup')
-        message = f'<p>You have been invited to join open camp.</p><br /><p>Click here to join: {server_host}{signup_url}?code={code}</p>'
-
-        if send_email:
-            plunk_client.send_email(
-                [email],
-                'Join our platform',
-                message,
-            )
-
-        return invite
-
-    def generate_code(self):
-        return str(uuid.uuid4()).replace('-', '')
+        self,
+        invited_by: User,
+        user: User,
+    ) -> 'SignupInvite':
+        code = str(uuid.uuid4()).replace('-', '')
+        return self.create(invited_by=invited_by, user=user, code=code)
 
 
 class SignupInvite(CreatedUpdatedMixin, BaseModel):

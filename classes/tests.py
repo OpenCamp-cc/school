@@ -1,4 +1,5 @@
 from decimal import Decimal
+from unittest.mock import patch
 
 import pytest
 from django.urls import reverse
@@ -7,7 +8,7 @@ from pytest_django.asserts import assertTemplateUsed
 
 from users.models import User
 
-from .models import LiveCohort, LiveCohortAssignment
+from .models import LiveCohort, LiveCohortAssignment, LiveCohortRegistration
 
 
 @pytest.mark.django_db
@@ -183,3 +184,195 @@ def test_student_dashboard(client, user):
 
     response = client.get(url)
     assert 'Other Cohort' not in str(response.content)
+
+
+@pytest.mark.django_db
+def test_register_student(client, user):
+    teacher = User.objects.create(
+        username='teacher', email='teacher@gmail.com', is_staff=True
+    )
+    cohort = LiveCohort.objects.create(
+        name='Test Cohort',
+        description='Test Description',
+        price='99.99',
+        max_students=2,
+        teacher=teacher,
+    )
+
+    # Test successful registration
+    registration = LiveCohortRegistration.objects.register_student(cohort, user)
+    assert registration.student == user
+    assert registration.cohort == cohort
+    assert cohort.students.count() == 1
+
+    # Test cohort full
+    other_student = User.objects.create(
+        username='other_student', email='other_student@gmail.com'
+    )
+    registration = LiveCohortRegistration.objects.register_student(
+        cohort, other_student
+    )
+    assert cohort.students.count() == 2
+
+    # Try registering when cohort is full
+    new_student = User.objects.create(
+        username='new_student', email='new_student@gmail.com'
+    )
+    with pytest.raises(Exception) as exc:
+        LiveCohortRegistration.objects.register_student(cohort, new_student)
+    assert str(exc.value) == 'Cohort is full'
+
+
+@pytest.mark.django_db
+@patch('classes.models.plunk_client')
+def test_register_new_student(mock_plunk, client):
+    teacher = User.objects.create(
+        username='teacher', email='teacher@gmail.com', is_staff=True
+    )
+    cohort = LiveCohort.objects.create(
+        name='Test Cohort',
+        description='Test Description',
+        price='99.99',
+        max_students=2,
+        teacher=teacher,
+    )
+
+    # Test successful registration
+    registration = LiveCohortRegistration.objects.register_new_student(
+        cohort=cohort, first_name='John', last_name='Doe', email='john@example.com'
+    )
+
+    # Verify user was created
+    student = User.objects.get(email='john@example.com')
+    assert student.first_name == 'John'
+    assert student.last_name == 'Doe'
+
+    # Verify registration
+    assert registration.student == student
+    assert registration.cohort == cohort
+
+    assert student.signup_invites.count() == 1
+
+    # Verify email was sent
+    mock_plunk.send_email.assert_called_once()
+    call_args = mock_plunk.send_email.call_args[0]
+    assert call_args[0] == ['john@example.com']
+    assert 'registration for Test Cohort confirmed' in call_args[1]
+
+    # Test cohort full
+    LiveCohortRegistration.objects.register_new_student(
+        cohort=cohort, first_name='Jane', last_name='Doe', email='jane@example.com'
+    )
+
+    # Try registering when cohort is full
+    with pytest.raises(Exception) as exc:
+        LiveCohortRegistration.objects.register_new_student(
+            cohort=cohort, first_name='Bob', last_name='Smith', email='bob@example.com'
+        )
+    assert str(exc.value) == 'Cohort is full'
+
+
+@pytest.mark.django_db
+@patch('classes.models.plunk_client')
+def test_cohort_students(mock_plunk, client, teacher, user):
+    cohort = LiveCohort.objects.create(
+        name='Test Cohort',
+        description='Test Description',
+        price='99.99',
+        max_students=2,
+        teacher=teacher,
+    )
+    url = reverse('classes:cohort-students', args=[cohort.id])
+
+    # Test unauthorized access
+    response = client.get(url)
+    assert response.status_code == 302
+    assert '/login' in response['Location']
+
+    # Regular user cannot access
+    client.force_login(user)
+    response = client.get(url)
+    assert response.status_code == 302
+
+    # Staff can access students page
+    client.force_login(teacher)
+    response = client.get(url)
+    assert response.status_code == 200
+    assertTemplateUsed(response, 'classes/students.html')
+    assert 'cohort' in response.context
+    assert 'form' in response.context
+    assert 'students' in response.context
+
+    # Test adding existing student
+    existing_student = User.objects.create(
+        username='student@test.com',
+        email='student@test.com',
+    )
+    response = client.post(
+        url, {'email': 'student@test.com', 'first_name': 'test', 'last_name': 'test'}
+    )
+    assert response.status_code == 302
+    assert cohort.students.filter(id=existing_student.id).exists()
+
+    # Test adding new student
+    response = client.post(
+        url,
+        {
+            'email': 'new@test.com',
+            'first_name': 'New',
+            'last_name': 'Student',
+        },
+    )
+    assert response.status_code == 302
+    new_student = User.objects.get(email='new@test.com')
+    assert cohort.students.filter(id=new_student.id).exists()
+    assert new_student.first_name == 'New'
+    assert new_student.last_name == 'Student'
+
+    # Test form validation error
+    response = client.post(url, {'email': 'invalid'})
+    assert response.status_code == 200
+    assert 'Please correct the errors below' in str(response.content)
+
+    # Verify email was sent for new student registration
+    mock_plunk.send_email.assert_called_once()
+
+
+@pytest.mark.django_db
+def test_remove_student(client, teacher, user):
+    cohort = LiveCohort.objects.create(
+        name='Test Cohort',
+        description='Test Description',
+        price='99.99',
+        max_students=2,
+        teacher=teacher,
+    )
+    cohort.students.add(user)
+    url = reverse('classes:remove-student', args=[cohort.id])
+
+    # Test unauthorized access
+    response = client.post(url, {'student_id': user.id})
+    assert response.status_code == 302
+    assert '/login' in response['Location']
+    assert cohort.students.filter(id=user.id).exists()
+
+    # Regular user cannot remove students
+    client.force_login(user)
+    response = client.post(url, {'student_id': user.id})
+    assert response.status_code == 302
+    assert cohort.students.filter(id=user.id).exists()
+
+    # Staff can remove students
+    client.force_login(teacher)
+    response = client.post(url, {'student_id': user.id})
+    assert response.status_code == 302
+    assert not cohort.students.filter(id=user.id).exists()
+
+    # GET requests should redirect
+    response = client.get(url)
+    assert response.status_code == 302
+    assert str(cohort.id) in response['Location']
+
+    # Invalid student_id should not cause errors
+    response = client.post(url, {'student_id': 99999})
+    assert response.status_code == 302

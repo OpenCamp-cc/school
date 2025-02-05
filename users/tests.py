@@ -16,9 +16,8 @@ def test_users():
         u.set_manager(u)
 
 
-@patch('users.models.plunk_client')
 @pytest.mark.django_db
-def test_signup(pc, client, user1):
+def test_signup(client, user1):
     template = 'users/signup.html'
     url = reverse('users:signup')
     login_url = reverse('users:login')
@@ -34,9 +33,11 @@ def test_signup(pc, client, user1):
 
     # Create a valid invite
     invite_email = 'newinvite@example.com'
-    invite = SignupInvite.objects.create_invite(
-        invited_by=user1, email=invite_email, send_email=False
+
+    new_user = User.objects.create_user(
+        username=invite_email, first_name='Test', email=invite_email, is_active=False
     )
+    invite = SignupInvite.objects.create_invite(invited_by=user1, user=new_user)
     assert invite
 
     # Test valid invite code

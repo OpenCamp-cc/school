@@ -51,9 +51,7 @@ def signup(request):
     else:
         print(form.errors)
 
-    return render(
-        request, 'users/signup.html', {'form': form, 'email': invite.user.email}
-    )
+    return render(request, 'users/signup.html', {'form': form, 'invite': invite})
 
 
 def login_user(request):

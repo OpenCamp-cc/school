@@ -1,0 +1,81 @@
+{% extends 'partials/anonymous_base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 bg-primary-50 min-h-screen pb-10">
+    <div class="flex items-center gap-4 py-6">
+        <a href="{% url 'classes:cohort-sessions' cohort.id %}" class="text-primary-600 hover:text-primary-700">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+            </svg>
+        </a>
+        <h2 class="text-3xl font-bold text-slate-800">Edit Session</h2>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="mb-4 p-4 rounded-lg {% if message.tags == 'success' %}bg-green-100 text-green-700{% else %}bg-red-100 text-red-700{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="bg-white rounded-xl shadow-lg p-6">
+        <form method="POST" class="space-y-6">
+            {% csrf_token %}
+            <div>
+                <label for="name" class="block text-sm font-medium leading-6 text-gray-900">Session Name</label>
+                <div class="mt-2">
+                    <input id="name" name="name" type="text" required value="{{ session.name }}"
+                        class="block w-full rounded-md border-0 px-2 py-1.5 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6">
+                </div>
+            </div>
+
+            <div>
+                <label for="description" class="block text-sm font-medium leading-6 text-gray-900">Description</label>
+                <div class="mt-2">
+                    <textarea id="description" name="description" rows="4"
+                        class="block w-full rounded-md border-0 px-2 py-1.5 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6">{{ session.description }}</textarea>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="start_time" class="block text-sm font-medium leading-6 text-gray-900">Start Time (UTC)</label>
+                    <div class="mt-2">
+                        <input id="start_time" name="start_time" type="datetime-local" required value="{{ session.start_time|date:'Y-m-d\TH:i' }}"
+                            class="block w-full rounded-md border-0 px-2 py-1.5 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6">
+                    </div>
+                </div>
+
+                <div>
+                    <label for="end_time" class="block text-sm font-medium leading-6 text-gray-900">End Time (UTC)</label>
+                    <div class="mt-2">
+                        <input id="end_time" name="end_time" type="datetime-local" required value="{{ session.end_time|date:'Y-m-d\TH:i' }}"
+                            class="block w-full rounded-md border-0 px-2 py-1.5 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6">
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <label for="meeting_url" class="block text-sm font-medium leading-6 text-gray-900">Meeting URL</label>
+                <div class="mt-2">
+                    <input id="meeting_url" name="meeting_url" type="url" value="{{ session.meeting_url }}"
+                        class="block w-full rounded-md border-0 px-2 py-1.5 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6">
+                </div>
+            </div>
+
+            <div class="flex justify-between gap-4">
+                <a href="{% url 'classes:cohort-sessions' cohort.id %}"
+                   class="flex w-full justify-center rounded-md bg-white px-3 py-1.5 text-sm font-semibold leading-6 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50">
+                    Cancel
+                </a>
+                <button type="submit"
+                        class="flex w-full justify-center rounded-md bg-primary-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600">
+                    Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

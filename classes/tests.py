@@ -8,7 +8,12 @@ from pytest_django.asserts import assertTemplateUsed
 
 from users.models import User
 
-from .models import LiveCohort, LiveCohortAssignment, LiveCohortRegistration
+from .models import (
+    LiveCohort,
+    LiveCohortAssignment,
+    LiveCohortRegistration,
+    LiveCohortSession,
+)
 
 
 @pytest.mark.django_db
@@ -376,3 +381,212 @@ def test_remove_student(client, teacher, user):
     # Invalid student_id should not cause errors
     response = client.post(url, {'student_id': 99999})
     assert response.status_code == 302
+
+
+@pytest.mark.django_db
+def test_delete_session(client, teacher, user):
+    # Create test data
+    cohort = LiveCohort.objects.create(
+        name='Test Cohort',
+        description='Test Description',
+        price='99.99',
+        max_students=10,
+        teacher=teacher,
+    )
+
+    future_time = timezone.now() + timezone.timedelta(days=1)
+    session = cohort.sessions.create(
+        name='Test Session',
+        description='Test Description',
+        start_time=future_time,
+        end_time=future_time + timezone.timedelta(hours=2),
+    )
+
+    url = reverse('classes:delete-session', args=[session.id])
+
+    # Test unauthorized access
+    response = client.post(url)
+    assert response.status_code == 302
+    assert '/login' in response['Location']
+    assert LiveCohortSession.objects.filter(id=session.id).exists()
+
+    # Regular user cannot delete sessions
+    client.force_login(user)
+    response = client.post(url)
+    assert response.status_code == 302
+    assert LiveCohortSession.objects.filter(id=session.id).exists()
+
+    # GET requests should redirect
+    response = client.get(url)
+    assert response.status_code == 302
+    assert str(cohort.id) in response['Location']
+
+    # Staff can delete sessions
+    client.force_login(teacher)
+    response = client.post(url)
+    assert response.status_code == 302
+    assert not LiveCohortSession.objects.filter(id=session.id).exists()
+    assert str(cohort.id) in response['Location']
+
+
+@pytest.mark.django_db
+def test_cohort_sessions(client, teacher, user):
+    cohort = LiveCohort.objects.create(
+        name='Test Cohort',
+        description='Test Description',
+        price='99.99',
+        max_students=10,
+        teacher=teacher,
+    )
+    url = reverse('classes:cohort-sessions', args=[cohort.id])
+    future_time = timezone.now() + timezone.timedelta(days=1)
+
+    # Test unauthorized access
+    response = client.get(url)
+    assert response.status_code == 302
+    assert '/login' in response['Location']
+
+    # Regular user cannot access sessions page
+    client.force_login(user)
+    response = client.get(url)
+    assert response.status_code == 302
+
+    # Staff can access sessions page
+    client.force_login(teacher)
+    response = client.get(url)
+    assert response.status_code == 200
+    assertTemplateUsed(response, 'classes/sessions.html')
+
+    # Test adding new session
+    session_data = {
+        'name': 'New Session',
+        'description': 'Test Description',
+        'start_time': future_time.strftime('%Y-%m-%dT%H:%M'),
+        'end_time': (future_time + timezone.timedelta(hours=2)).strftime(
+            '%Y-%m-%dT%H:%M'
+        ),
+    }
+    response = client.post(url, session_data)
+    assert response.status_code == 302
+    assert cohort.sessions.filter(name='New Session').exists()
+
+    # Test invalid form submission
+    invalid_data = {
+        'name': 'Bad Session',
+        'start_time': future_time.strftime('%Y-%m-%dT%H:%M'),
+        'end_time': (future_time - timezone.timedelta(hours=2)).strftime(
+            '%Y-%m-%dT%H:%M'
+        ),
+    }
+    response = client.post(url, invalid_data)
+    assert response.status_code == 200
+    assert 'Please correct the errors below' in str(response.content)
+
+
+@pytest.mark.django_db
+def test_cohort_assignments(client, teacher, user):
+    cohort = LiveCohort.objects.create(
+        name='Test Cohort',
+        description='Test Description',
+        price='99.99',
+        max_students=10,
+        teacher=teacher,
+    )
+    url = reverse('classes:cohort-assignments', args=[cohort.id])
+    future_time = timezone.now() + timezone.timedelta(days=1)
+
+    # Test unauthorized access
+    response = client.get(url)
+    assert response.status_code == 302
+    assert '/login' in response['Location']
+
+    # Regular user cannot access assignments page
+    client.force_login(user)
+    response = client.get(url)
+    assert response.status_code == 302
+
+    # Staff can access assignments page
+    client.force_login(teacher)
+    response = client.get(url)
+    assert response.status_code == 200
+    assertTemplateUsed(response, 'classes/assignments.html')
+
+    # Test adding new assignment
+    assignment_data = {
+        'name': 'New Assignment',
+        'description': 'Test Description',
+        'due_date': future_time.strftime('%Y-%m-%dT%H:%M'),
+    }
+    response = client.post(url, assignment_data)
+    assert response.status_code == 302
+    assert cohort.assignments.filter(name='New Assignment').exists()
+
+    # Test invalid form submission
+    invalid_data = {
+        'name': '',
+        'due_date': 'invalid-date',
+    }
+    response = client.post(url, invalid_data)
+    assert response.status_code == 200
+    assert 'Please correct the errors below' in str(response.content)
+
+
+@pytest.mark.django_db
+def test_all_sessions(client, teacher, user):
+    # Create test data
+    cohort = LiveCohort.objects.create(
+        name='Test Cohort',
+        description='Test Description',
+        price='99.99',
+        max_students=10,
+        teacher=teacher,
+    )
+
+    # Create multiple sessions
+    future_time = timezone.now() + timezone.timedelta(days=1)
+    session1 = cohort.sessions.create(
+        name='Session 1',
+        description='First Session',
+        start_time=future_time,
+        end_time=future_time + timezone.timedelta(hours=2),
+    )
+    session2 = cohort.sessions.create(
+        name='Session 2',
+        description='Second Session',
+        start_time=future_time + timezone.timedelta(days=1),
+        end_time=future_time + timezone.timedelta(days=1, hours=2),
+    )
+
+    url = reverse('classes:all-sessions', args=[cohort.id])
+
+    # Test unauthorized access
+    response = client.get(url)
+    assert response.status_code == 302
+    assert '/login' in response['Location']
+
+    # Test access for enrolled student
+    cohort.students.add(user)
+    client.force_login(user)
+    response = client.get(url)
+    assert response.status_code == 200
+    assertTemplateUsed(response, 'classes/sessions_component.html')
+    assert 'Session 1' in str(response.content)
+    assert 'Session 2' in str(response.content)
+    assert response.context['all'] is True
+
+    # Test access for teacher
+    client.force_login(teacher)
+    response = client.get(url)
+    assert response.status_code == 200
+    assert 'Session 1' in str(response.content)
+    assert 'Session 2' in str(response.content)
+
+    # Test access for non-enrolled user
+    other_user = User.objects.create(username='other', email='other@test.com')
+    client.force_login(other_user)
+    response = client.get(url)
+    assert response.status_code == 404
+
+    # Test non-existent cohort
+    response = client.get(reverse('classes:all-sessions', args=[99999]))
+    assert response.status_code == 404

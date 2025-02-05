@@ -35,6 +35,8 @@ class LiveCohort(BaseModel, CreatedUpdatedMixin):
 
     upcoming_assignments: List['LiveCohortAssignment']
     upcoming_sessions: List['LiveCohortSession']
+    has_more_sessions: bool
+    has_more_assignments: bool
     progress: int | None = None
 
     def course_progress(self):
@@ -162,6 +164,7 @@ class LiveCohortAssignment(BaseModel, CreatedUpdatedMixin):
     description = models.TextField(null=True, blank=True)
 
     attachment = models.FileField(upload_to='assignments/', blank=True, null=True)
+    submission_optional = models.BooleanField(default=False)
     external_url = models.URLField(null=True, blank=True)
 
     def __str__(self):

@@ -1,0 +1,117 @@
+{% extends 'partials/anonymous_base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 bg-primary-50 min-h-screen pb-10" x-data="{
+    showModal: false,
+    sessionToDelete: null,
+    sessionName: '',
+    isFormOpen: false
+}">
+    <div class="flex items-center gap-4 py-6">
+        <a href="{% url 'classes:teacher-dashboard' %}" class="text-primary-600 hover:text-primary-700">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+            </svg>
+        </a>
+        <h2 class="text-3xl font-bold text-slate-800">{{ cohort.name }} - Sessions</h2>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="mb-4 p-4 rounded-lg {% if message.tags == 'success' %}bg-green-100 text-green-700{% else %}bg-red-100 text-red-700{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Add Session Form Accordion -->
+    <div class="bg-white rounded-xl shadow-lg mb-8">
+        <button @click="isFormOpen = !isFormOpen" class="w-full p-6">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <svg class="w-5 h-5 transition-transform duration-200"
+                         :class="isFormOpen ? 'rotate-45' : ''"
+                         fill="none"
+                         stroke="currentColor"
+                         viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    <h3 class="text-xl font-bold text-slate-800">Add New Session</h3>
+                </div>
+            </div>
+        </button>
+
+        <div x-show="isFormOpen"
+             x-transition:enter="transition ease-out duration-400"
+             x-transition:enter-start="opacity-0 -translate-y-2"
+             x-transition:enter-end="opacity-100 translate-y-0"
+             x-transition:leave="transition ease-in duration-400"
+             x-transition:leave-start="opacity-100 translate-y-0"
+             x-transition:leave-end="opacity-0 -translate-y-2"
+             class="px-6 pb-6">
+            <form method="POST" class="space-y-6">
+                {% csrf_token %}
+                <div>
+                    <label for="name" class="block text-sm font-medium leading-6 text-gray-900">Session Name</label>
+                    <div class="mt-2">
+                        <input id="name" name="name" type="text" required
+                            class="block w-full rounded-md border-0 px-2 py-1.5 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6">
+                    </div>
+                </div>
+
+                <div>
+                    <label for="description" class="block text-sm font-medium leading-6 text-gray-900">Description</label>
+                    <div class="mt-2">
+                        <textarea id="description" name="description" rows="4"
+                            class="block w-full rounded-md border-0 px-2 py-1.5 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6"></textarea>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="start_time" class="block text-sm font-medium leading-6 text-gray-900">Start Time (UTC)</label>
+                        <div class="mt-2">
+                            <input id="start_time" name="start_time" type="datetime-local" required
+                                class="block w-full rounded-md border-0 px-2 py-1.5 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="end_time" class="block text-sm font-medium leading-6 text-gray-900">End Time (UTC)</label>
+                        <div class="mt-2">
+                            <input id="end_time" name="end_time" type="datetime-local" required
+                                class="block w-full rounded-md border-0 px-2 py-1.5 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6">
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label for="meeting_url" class="block text-sm font-medium leading-6 text-gray-900">Meeting URL</label>
+                    <div class="mt-2">
+                        <input id="meeting_url" name="meeting_url" type="url"
+                            class="block w-full rounded-md border-0 px-2 py-1.5 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6">
+                    </div>
+                </div>
+
+                <div class="mt-8">
+                    <button type="submit" class="flex w-full justify-center rounded-md bg-primary-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600">
+                        Add Session
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Sessions List -->
+    <div class="bg-white rounded-xl shadow-lg p-6">
+        <h3 class="text-xl font-bold text-slate-800 mb-6">All Sessions</h3>
+
+        {% if cohort.sessions %}
+          {% include 'classes/sessions_component.html' with all='True' %}
+        {% else %}
+            <p class="text-sm text-slate-600">No sessions created yet.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

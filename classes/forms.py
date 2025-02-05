@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import LiveCohort, LiveCohortSession
+from .models import LiveCohort, LiveCohortAssignment, LiveCohortSession
 
 
 class LiveCohortForm(forms.Form):
@@ -50,3 +50,43 @@ class AddStudentForm(forms.Form):
     first_name = forms.CharField(max_length=150)
     last_name = forms.CharField(max_length=150)
     email = forms.EmailField()
+
+
+class AddAssignmentForm(forms.ModelForm):
+    class Meta:
+        model = LiveCohortAssignment
+        fields = [
+            'name',
+            'description',
+            'due_date',
+            'graded',
+            'attachment',
+            'external_url',
+            'submission_optional',  # Add this field
+        ]
+        widgets = {
+            'due_date': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+            'description': forms.Textarea(attrs={'rows': 4}),
+        }
+
+
+class LiveCohortSessionForm(forms.ModelForm):
+    class Meta:
+        model = LiveCohortSession
+        fields = ['name', 'description', 'start_time', 'end_time', 'meeting_url']
+        widgets = {
+            'start_time': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+            'end_time': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+            'description': forms.Textarea(attrs={'rows': 4}),
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        start_time = cleaned_data.get('start_time')
+        end_time = cleaned_data.get('end_time')
+
+        if start_time and end_time:
+            if start_time >= end_time:
+                raise forms.ValidationError('End time must be after start time')
+
+        return cleaned_data

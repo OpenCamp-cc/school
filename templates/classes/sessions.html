@@ -53,7 +53,7 @@
             <form method="POST" class="space-y-6">
                 {% csrf_token %}
                 <div>
-                    <label for="name" class="block text-sm font-medium leading-6 text-gray-900">Session Name</label>
+                    <label for="name" class="block text-sm font-bold leading-6 text-gray-900">Session Name</label>
                     <div class="mt-2">
                         <input id="name" name="name" type="text" required
                             class="block w-full rounded-md border-0 px-2 py-1.5 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6">
@@ -61,7 +61,7 @@
                 </div>
 
                 <div>
-                    <label for="description" class="block text-sm font-medium leading-6 text-gray-900">Description</label>
+                    <label for="description" class="block text-sm font-bold leading-6 text-gray-900">Description</label>
                     <div class="mt-2">
                         <textarea id="description" name="description" rows="4"
                             class="block w-full rounded-md border-0 px-2 py-1.5 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6"></textarea>
@@ -70,7 +70,7 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label for="start_time" class="block text-sm font-medium leading-6 text-gray-900">Start Time (UTC)</label>
+                        <label for="start_time" class="block text-sm font-bold leading-6 text-gray-900">Start Time (UTC)</label>
                         <div class="mt-2">
                             <input id="start_time" name="start_time" type="datetime-local" required
                                 class="block w-full rounded-md border-0 px-2 py-1.5 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6">
@@ -78,7 +78,7 @@
                     </div>
 
                     <div>
-                        <label for="end_time" class="block text-sm font-medium leading-6 text-gray-900">End Time (UTC)</label>
+                        <label for="end_time" class="block text-sm font-bold leading-6 text-gray-900">End Time (UTC)</label>
                         <div class="mt-2">
                             <input id="end_time" name="end_time" type="datetime-local" required
                                 class="block w-full rounded-md border-0 px-2 py-1.5 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6">
@@ -87,7 +87,7 @@
                 </div>
 
                 <div>
-                    <label for="meeting_url" class="block text-sm font-medium leading-6 text-gray-900">Meeting URL</label>
+                    <label for="meeting_url" class="block text-sm font-bold leading-6 text-gray-900">Meeting URL</label>
                     <div class="mt-2">
                         <input id="meeting_url" name="meeting_url" type="url"
                             class="block w-full rounded-md border-0 px-2 py-1.5 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6">

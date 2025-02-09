@@ -53,7 +53,7 @@
             <form method="POST" enctype="multipart/form-data" class="space-y-6">
                 {% csrf_token %}
                 <div>
-                    <label for="name" class="block text-sm font-medium leading-6 text-gray-900">Assignment Name</label>
+                    <label for="name" class="block text-sm font-bold leading-6 text-gray-900">Assignment Name</label>
                     <div class="mt-2">
                         <input id="name" name="name" type="text" required
                             class="block w-full rounded-md border-0 px-2 py-1.5 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6">
@@ -61,7 +61,7 @@
                 </div>
 
                 <div>
-                    <label for="description" class="block text-sm font-medium leading-6 text-gray-900">Description</label>
+                    <label for="description" class="block text-sm font-bold leading-6 text-gray-900">Description</label>
                     <div class="mt-2">
                         <textarea id="description" name="description" rows="4"
                             class="block w-full rounded-md border-0 px-2 py-1.5 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6"></textarea>
@@ -70,7 +70,7 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label for="due_date" class="block text-sm font-medium leading-6 text-gray-900">Due Date</label>
+                        <label for="due_date" class="block text-sm font-bold leading-6 text-gray-900">Due Date</label>
                         <div class="mt-2">
                             <input id="due_date" name="due_date" type="datetime-local" required
                                 class="block w-full rounded-md border-0 px-2 py-1.5 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6">
@@ -78,7 +78,7 @@
                     </div>
 
                     <div>
-                        <label for="attachment" class="block text-sm font-medium leading-6 text-gray-900">Attachment</label>
+                        <label for="attachment" class="block text-sm font-bold leading-6 text-gray-900">Attachment</label>
                         <div class="mt-2">
                             <input id="attachment" name="attachment" type="file"
                                 class="text-sm text-slate-500
@@ -92,7 +92,7 @@
                 </div>
 
                 <div>
-                    <label for="external_url" class="block text-sm font-medium leading-6 text-gray-900">External URL</label>
+                    <label for="external_url" class="block text-sm font-bold leading-6 text-gray-900">External URL</label>
                     <div class="mt-2">
                         <input id="external_url" name="external_url" type="url"
                             class="block w-full rounded-md border-0 px-2 py-1.5 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6">
@@ -101,12 +101,12 @@
 
                 <div class="flex items-center">
                     <input id="graded" name="graded" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-600">
-                    <label for="graded" class="ml-2 block text-sm text-gray-900">This is a graded assignment</label>
+                    <label for="graded" class="ml-2 block text-sm font-bold text-gray-900">This is a graded assignment</label>
                 </div>
 
                 <div class="flex items-center">
                     <input id="submission_optional" name="submission_optional" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-600">
-                    <label for="submission_optional" class="ml-2 block text-sm text-gray-900">Submission is optional</label>
+                    <label for="submission_optional" class="ml-2 block text-sm font-bold text-gray-900">Submission is optional</label>
                 </div>
 
                 <div class="mt-8">

@@ -1,5 +1,5 @@
 {% extends 'partials/anonymous_base.html' %}
-{% load static %}
+{% load static classes_filters %}
 
 {% block content %}
     <div class="max-w-7xl mx-auto px-4">
@@ -67,19 +67,13 @@
                 </div>
             </div>
 
-            <!-- Backend Course Section -->
+            {% for c in cohorts %}
             <div class="mb-12">
-                <h2 class="text-3xl font-bold text-slate-800 mb-6">Backend Course</h2>
                 <div class="bg-white rounded-xl border border-slate-200 p-8 mb-8">
                     <div class="mb-8">
-                        <h3 class="text-2xl font-bold text-slate-800 mb-4">Cohort #0 (March 2025)</h3>
+                        <h3 class="text-2xl font-bold text-slate-800 mb-4">{{ c.name }}</h3>
                         <div class="space-y-4 text-slate-600">
-                            <p class="font-medium">We are no longer accepting applications for our first cohort.</p>
-                            <div class="mt-4">
-                                <p class="mb-3 font-medium">To be informed on when the next cohort is scheduled to run, please send an email to:
-                                <a href="mailto:applications@opencamp.cc" class="text-primary-600 font-medium hover:text-primary-700">applications@opencamp.cc</a>
-                                </p>
-                            </div>
+                            {{ c.description|safe }}
                         </div>
                     </div>
 
@@ -87,30 +81,16 @@
                         <div>
                             <h4 class="text-xl font-bold text-slate-800 mb-4">Key Topics</h4>
                             <ul class="grid md:grid-cols-2 gap-3 text-slate-600">
+                                {% if c.key_topics %}
+                                {% with c.key_topics|splitnewline as topics %}
+                                {% for t in topics %}
                                 <li class="flex items-start">
                                     <span class="text-primary-600 font-semibold mr-2">•</span>
-                                    <span>Principles behind Reliable Distributed Systems</span>
+                                    <span>{{ t }}</span>
                                 </li>
-                                <li class="flex items-start">
-                                    <span class="text-primary-600 font-semibold mr-2">•</span>
-                                    <span>Flow of Data between systems</span>
-                                </li>
-                                <li class="flex items-start">
-                                    <span class="text-primary-600 font-semibold mr-2">•</span>
-                                    <span>Understanding Failures</span>
-                                </li>
-                                <li class="flex items-start">
-                                    <span class="text-primary-600 font-semibold mr-2">•</span>
-                                    <span>Replication and Partitioning</span>
-                                </li>
-                                <li class="flex items-start">
-                                    <span class="text-primary-600 font-semibold mr-2">•</span>
-                                    <span>Monitoring and Observability</span>
-                                </li>
-                                <li class="flex items-start">
-                                    <span class="text-primary-600 font-semibold mr-2">•</span>
-                                    <span>Event Driven Systems</span>
-                                </li>
+                                {% endfor %}
+                                {% endwith %}
+                                {% endif %}
                             </ul>
                         </div>
 
@@ -120,42 +100,31 @@
                                 <div class="space-y-4 text-slate-600">
                                     <p class="font-semibold">Schedule:</p>
                                     <ul class="space-y-2">
+                                        {% if c.schedule %}
+                                        {% with c.schedule|splitnewline as schedules %}
+                                        {% for s in schedules %}
                                         <li class="flex items-start">
                                             <span class="text-primary-600 font-semibold mr-2">•</span>
-                                            <span>Start: 3rd March, 2025</span>
+                                            <span>{{ s }}</span>
                                         </li>
-                                        <li class="flex items-start">
-                                            <span class="text-primary-600 font-semibold mr-2">•</span>
-                                            <span>End: 2nd May, 2025</span>
-                                        </li>
-                                        <li class="flex items-start">
-                                            <span class="text-primary-600 font-semibold mr-2">•</span>
-                                            <span>Duration: 8 weeks (+ 1 additional week for final assignment)</span>
-                                        </li>
-                                        <li class="flex items-start">
-                                            <span class="text-primary-600 font-semibold mr-2">•</span>
-                                            <span>Live lessons: Every Monday, 7pm ~ 9pm (SGT)</li>
-                                        <li class="flex items-start">
-                                            <span class="text-primary-600 font-semibold mr-2">•</span>
-                                            <span>Cohort Size: <span class="line-through">5 students</span> All five slots have been taken up.</span>
-                                        </li>
+                                        {% endfor %}
+                                        {% endwith %}
+                                        {% endif %}
                                     </ul>
                                 </div>
                                 <div class="space-y-4 text-slate-600">
                                     <p class="font-semibold">Features:</p>
                                     <ul class="space-y-2">
+                                        {% if c.features %}
+                                        {% with c.features|splitnewline as features %}
+                                        {% for f in features %}
                                         <li class="flex items-start">
-                                            <span class="text-primary-600 font-semibold mr-2">•</span>
-                                            <span>Weekly assignments with individual feedback</span>
+                                            <span class="text-slate-600 font-semibold mr-2">•</span>
+                                            <span>{{ f }}</span>
                                         </li>
-                                        <li class="flex items-start">
-                                            <span class="text-primary-600 font-semibold mr-2">•</span>
-                                            <span>Peer learning and collaboration, including technical reviews and discussions (live and async)</span>
-                                        </li>
-                                        <li class="flex items-start">
-                                            <span class="text-primary-600 font-semibold mr-2">•</span>
-                                            <span>1 hour check-ins with the instructor every 2 weeks for personalized feedback and career related discussions</span>
-                                        </li>
+                                        {% endfor %}
+                                        {% endwith %}
+                                        {% endif %}
                                     </ul>
                                 </div>
                             </div>
@@ -165,109 +134,36 @@
                             <div>
                                 <h4 class="text-xl font-bold text-slate-800 mb-4">Requirements</h4>
                                 <ul class="space-y-2 text-slate-600">
-                                    <li class="flex items-start">
-                                        <span class="text-primary-600 font-semibold mr-2">•</span>
-                                        <span>1~2 years of working experience as a Software Engineer</span>
-                                    </li>
-                                    <li class="flex items-start">
-                                        <span class="text-primary-600 font-semibold mr-2">•</span>
-                                        <span>5~10 hours a week for materials and assignments</span>
-                                    </li>
-                                    <li class="flex items-start">
-                                        <span class="text-primary-600 font-semibold mr-2">•</span>
-                                        <span>Internet connection for weekly Zoom calls</span>
-                                    </li>
+                                        {% if c.requirements %}
+                                        {% with c.requirements|splitnewline as reqs %}
+                                        {% for r in reqs %}
+                                        <li class="flex items-start">
+                                            <span class="text-slate-600 font-semibold mr-2">•</span>
+                                            <span>{{ r }}</span>
+                                        </li>
+                                        {% endfor %}
+                                        {% endwith %}
+                                        {% endif %}
                                 </ul>
                             </div>
                             <div>
                                 <h4 class="text-xl font-bold text-slate-800 mb-4">Course Fees</h4>
-                                <p class="text-slate-600 mb-2">USD 499 / SGD 680 for 2 months (part-time, online)</p>
-                                <p class="text-slate-600">Payment can be made in full or via monthly instalments by Credit Card or Bank Transfer (for learners residing in Singapore only)</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Art and Science of Leadership Section -->
-            <div class="mb-12">
-                <h2 class="text-3xl font-bold text-slate-800 mb-6">The Art and Science of Leadership</h2>
-                <div class="bg-white rounded-xl border border-slate-200 p-8 mb-8">
-                    <div class="mb-8">
-                        <h3 class="text-2xl font-bold text-slate-800 mb-4">Cohort #0 (June 2025)</h3>
-                        <div class="space-y-4 text-slate-600">
-                            <div class="mt-4">
-                                <p class="mb-3 font-medium">To be informed on when the next cohort is scheduled to run, please send an email to:
-                                <a href="mailto:applications@opencamp.cc" class="text-primary-600 font-medium hover:text-primary-700">applications@opencamp.cc</a>
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="space-y-6">
-                        <div>
-                            <h4 class="text-xl font-bold text-slate-800 mb-4">Description</h4>
-                            <p>Do you find yourself being tasked to formally or informally lead a team? Or perhaps you find yourself in a position where your stakeholders are now primarily non-technical folks, and you need to ensure that you help your team achieve success?</p>
-
-                            <p class="mt-2">In this course, you will discover why leadership is both an art and science, and why leaders with the best intentions but relying on only art or science often cause their team or organization to fail.</p>
-
-                            <p class="mt-2">Expect intense discussions with both the instructor and your peers throughout the course, which will help you learn the science of leadership, while you refine your own art style in leadership.</p>
-                        </div>
-
-                        <div>
-                            <h4 class="text-xl font-bold text-slate-800 mb-4">Course Details</h4>
-                            <div class="grid md:grid-cols-2 gap-8">
-                                <div class="space-y-4 text-slate-600">
-                                    <p class="font-semibold">Schedule:</p>
-                                    <p>Coming Soon</p>
-                                </div>
-                                <div class="space-y-4 text-slate-600">
-                                    <p class="font-semibold">Features:</p>
                                     <ul class="space-y-2">
-                                        <li class="flex items-start">
-                                            <span class="text-primary-600 font-semibold mr-2">•</span>
-                                            <span>Weekly assignments with individual feedback</span>
-                                        </li>
-                                        <li class="flex items-start">
-                                            <span class="text-primary-600 font-semibold mr-2">•</span>
-                                            <span>Peer learning and collaboration, including technical reviews and discussions (live and async)</span>
-                                        </li>
-                                        <li class="flex items-start">
-                                            <span class="text-primary-600 font-semibold mr-2">•</span>
-                                            <span>1 hour check-ins with the instructor every 2 weeks for personalized feedback and career related discussions</span>
-                                        </li>
+                                    {% with c.course_fees|splitnewline as fees %}
+                                    {% for f in fees %}
+                                    <li class="flex items-start text-slate-600">
+                                        <span class="text-primary-600 font-semibold mr-2">•</span>
+                                        <span>{{ f }}</span>
+                                    </li>
+                                    {% endfor %}
+                                    {% endwith %}
                                     </ul>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="grid md:grid-cols-2 gap-8">
-                            <div>
-                                <h4 class="text-xl font-bold text-slate-800 mb-4">Requirements</h4>
-                                <ul class="space-y-2 text-slate-600">
-                                    <li class="flex items-start">
-                                        <span class="text-primary-600 font-semibold mr-2">•</span>
-                                        <span>2~4 years of working experience as a Software Engineer interested in leadership, or a Tech Lead / Manager</span>
-                                    </li>
-                                    <li class="flex items-start">
-                                        <span class="text-primary-600 font-semibold mr-2">•</span>
-                                        <span>5~10 hours a week for materials and assignments</span>
-                                    </li>
-                                    <li class="flex items-start">
-                                        <span class="text-primary-600 font-semibold mr-2">•</span>
-                                        <span>Internet connection for weekly Zoom calls</span>
-                                    </li>
-                                </ul>
-                            </div>
-                            <div>
-                                <h4 class="text-xl font-bold text-slate-800 mb-4">Course Fees</h4>
-                                <p class="text-slate-600 mb-2">USD 450 / SGD 600 for 2 months (part-time, online)</p>
-                                <p class="text-slate-600">Payment can be made in full or via monthly instalments by Credit Card or Bank Transfer (for learners residing in Singapore only)</p>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+            {% endfor %}
 
             <div class="mb-12">
                 <h2 class="text-3xl font-bold text-slate-800 mb-6">Chat With Us</h2>

@@ -38,7 +38,8 @@ def faq(request: HttpRequest) -> HttpResponse:
 
 
 def upcoming_courses(request: HttpRequest) -> HttpResponse:
-    return render(request, 'courses.html')
+    cohorts = list(LiveCohort.objects.all())
+    return render(request, 'courses.html', {'cohorts': cohorts})
 
 
 def curriculum(request: HttpRequest) -> HttpResponse:
@@ -82,9 +83,7 @@ def add_live_cohort(request: AuthenticatedHttpRequest) -> HttpResponse:
         if form.is_valid():
             try:
                 cohort = form.save(teacher=request.user)
-                return redirect(
-                    'classes:teacher-dashboard'
-                )  # Changed from teacher-classes
+                return redirect('classes:teacher-dashboard')
             except Exception as e:
                 messages.error(request, 'Failed to create cohort. Please try again.')
         else:
@@ -353,3 +352,25 @@ def delete_session(request: HttpRequest, id: int) -> HttpResponse:
         return redirect('classes:cohort-sessions', id=cohort_id)
 
     return redirect('classes:cohort-sessions', id=cohort_id)
+
+
+@user_passes_test(lambda u: u.is_staff)
+def edit_live_cohort(request: HttpRequest, id: int) -> HttpResponse:
+    cohort = get_object_or_404(LiveCohort, id=id)
+
+    if request.method == 'POST':
+        form = LiveCohortForm(request.POST, instance=cohort)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Cohort updated successfully.')
+            return redirect('classes:teacher-dashboard')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = LiveCohortForm(instance=cohort)
+
+    context = {
+        'form': form,
+        'cohort': cohort,
+    }
+    return render(request, 'classes/edit_live_cohort.html', context)

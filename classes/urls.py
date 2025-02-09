@@ -1,4 +1,5 @@
 from django.urls import path
+from django.views.generic.base import RedirectView
 
 from . import views
 
@@ -11,6 +12,9 @@ urlpatterns = [
     path('faq', views.faq, name='faq'),
     path('docs/curriculum/', views.curriculum, name='curriculum'),
     path('classes', views.search_classes, name='search-classes'),
+    path(
+        'teacher', RedirectView.as_view(url='/teacher/dashboard/'), name='teacher-main'
+    ),
     path('teacher/dashboard/live/add', views.add_live_cohort, name='add-live-cohort'),
     path('teacher/dashboard/', views.teacher_dashboard, name='teacher-dashboard'),
     path('dashboard/', views.student_dashboard, name='student-dashboard'),
@@ -47,5 +51,10 @@ urlpatterns = [
         'session/<int:id>/delete',
         views.delete_session,
         name='delete-session',
+    ),
+    path(
+        'cohort/<int:id>/edit',
+        views.edit_live_cohort,
+        name='edit-live-cohort',
     ),
 ]

@@ -16,6 +16,12 @@ class LiveCohort(BaseModel, CreatedUpdatedMixin):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
 
+    features = models.TextField(blank=True, null=True)
+    key_topics = models.TextField(blank=True, null=True)
+    schedule = models.TextField(blank=True, null=True)
+    requirements = models.TextField(blank=True, null=True)
+    course_fees = models.TextField(blank=True, null=True)
+
     max_students = models.PositiveSmallIntegerField(
         validators=[MaxValueValidator(99), MinValueValidator(1)]
     )

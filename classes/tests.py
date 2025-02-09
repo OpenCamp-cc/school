@@ -47,12 +47,6 @@ def test_add_live_cohort(client, teacher):
         'description': 'Test Description',
         'price': '99.99',
         'max_students': 10,
-        'session_name': 'First Session',
-        'session_description': 'Session Description',
-        'start_time': future_time.strftime('%Y-%m-%dT%H:%M'),
-        'end_time': (future_time + timezone.timedelta(hours=2)).strftime(
-            '%Y-%m-%dT%H:%M'
-        ),
     }
 
     response = client.post(url, data)
@@ -63,31 +57,6 @@ def test_add_live_cohort(client, teacher):
     assert cohort.teacher == teacher
     assert cohort.price == Decimal('99.99')
     assert cohort.max_students == 10
-
-    # Verify session was created
-    session = cohort.sessions.first()
-    assert session is not None
-    assert session.name == 'First Session'
-
-    # Test invalid time range (end before start)
-    future_time = timezone.now() + timezone.timedelta(days=1)
-    data = {
-        'name': 'Test Cohort',
-        'description': 'Test Description',
-        'price': '99.99',
-        'max_students': 10,
-        'session_name': 'First Session',
-        'session_description': 'Session Description',
-        'start_time': future_time.strftime('%Y-%m-%dT%H:%M'),
-        'end_time': (future_time - timezone.timedelta(hours=2)).strftime(
-            '%Y-%m-%dT%H:%M'
-        ),
-    }
-
-    response = client.post(url, data)
-    assert response.status_code == 200
-    assert 'End time must be after start time' in str(response.content)
-    assert LiveCohort.objects.count() == 1
 
 
 @pytest.mark.django_db

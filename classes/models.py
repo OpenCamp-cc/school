@@ -9,6 +9,7 @@ from django.utils import timezone
 
 from db.models import BaseModel, CreatedUpdatedMixin
 from integrations.emails import plunk_client
+from quizzes.models import Quiz
 from users.models import SignupInvite, User
 
 
@@ -38,11 +39,13 @@ class LiveCohort(BaseModel, CreatedUpdatedMixin):
     students = models.ManyToManyField(User, through='LiveCohortRegistration')
     sessions: models.QuerySet['LiveCohortSession']
     assignments: models.QuerySet['LiveCohortAssignment']
+    quizzes = models.ManyToManyField('quizzes.Quiz', through='LiveCohortQuiz')
 
     upcoming_assignments: List['LiveCohortAssignment']
     upcoming_sessions: List['LiveCohortSession']
     has_more_sessions: bool
     has_more_assignments: bool
+    upcoming_quizzes: List['LiveCohortQuiz']
     progress: int | None = None
 
     def course_progress(self):
@@ -195,3 +198,42 @@ class LiveCohortAssignmentSubmission(BaseModel, CreatedUpdatedMixin):
 
     def __str__(self):
         return f'{self.student} - {self.assignment}'
+
+
+class LiveCohortQuiz(BaseModel, CreatedUpdatedMixin):
+    cohort = models.ForeignKey(
+        LiveCohort, on_delete=models.CASCADE, related_name='cohort_quizzes'
+    )
+    quiz = models.ForeignKey('quizzes.Quiz', on_delete=models.CASCADE)
+
+    due_date = models.DateTimeField()
+    is_required = models.BooleanField(default=True)
+
+    class Meta:
+        unique_together = ['cohort', 'quiz']
+
+    @property
+    def total_points(self):
+        choice_points = (
+            self.quiz.choice_questions.aggregate(total=models.Sum('points'))['total']
+            or 0
+        )
+        text_points = (
+            self.quiz.text_questions.aggregate(total=models.Sum('points'))['total'] or 0
+        )
+        return choice_points + text_points
+
+
+class LiveCohortQuizSubmission(BaseModel, CreatedUpdatedMixin):
+    cohort_quiz = models.ForeignKey(
+        LiveCohortQuiz, on_delete=models.CASCADE, related_name='submissions'
+    )
+    quiz_attempt = models.OneToOneField(
+        'quizzes.QuizAttempt',
+        on_delete=models.CASCADE,
+        related_name='cohort_submission',
+    )
+    submission_time = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'{self.quiz_attempt.student} - {self.cohort_quiz.quiz.name}'

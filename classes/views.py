@@ -1,12 +1,22 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Q
+from django.db import transaction
+from django.db.models import Prefetch, Q
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 
+from quizzes.models import (
+    ChoiceQuestionSubmission,
+    QuestionOption,
+    Quiz,
+    QuizAttempt,
+    QuizChoiceQuestion,
+    QuizTextQuestion,
+    TextQuestionSubmission,
+)
 from users.http import AuthenticatedHttpRequest
 from users.models import User
 
@@ -20,6 +30,8 @@ from .models import (
     LiveCohort,
     LiveCohortAssignment,
     LiveCohortAssignmentSubmission,
+    LiveCohortQuiz,
+    LiveCohortQuizSubmission,
     LiveCohortRegistration,
     LiveCohortSession,
 )
@@ -176,6 +188,13 @@ def student_dashboard(request: AuthenticatedHttpRequest) -> HttpResponse:
         if len(cohort.upcoming_assignments) > 4:
             cohort.upcoming_assignments = cohort.upcoming_assignments[:4]
             cohort.has_more_assignments = True
+
+        cohort_quizzes = (
+            LiveCohortQuiz.objects.filter(cohort=cohort, due_date__gt=now)
+            .select_related('quiz')
+            .order_by('due_date')[:4]
+        )
+        cohort.upcoming_quizzes = list(cohort_quizzes)
 
     context = {
         'cohorts': live_cohorts,
@@ -374,3 +393,199 @@ def edit_live_cohort(request: HttpRequest, id: int) -> HttpResponse:
         'cohort': cohort,
     }
     return render(request, 'classes/edit_live_cohort.html', context)
+
+
+@login_required
+def all_quizzes(request: HttpRequest, id: int) -> HttpResponse:
+    user = request.user
+    cohort = get_object_or_404(LiveCohort.objects.filter(students=user), id=id)
+
+    cohort_quizzes = cohort.quizzes.order_by('due_date')
+    cohort.upcoming_quizzes = list(cohort_quizzes)
+    context = {
+        'cohort': cohort,
+        'all': True,
+    }
+
+    return render(request, 'classes/quizzes_component.html', context)
+
+
+@login_required
+def view_quiz(request: HttpRequest, id: int) -> HttpResponse:
+    quiz = get_object_or_404(Quiz, id=id)
+    user = request.user
+
+    cohort_quiz = (
+        LiveCohortQuiz.objects.filter(quiz=quiz)
+        .select_related('cohort', 'quiz')
+        .prefetch_related(
+            Prefetch(
+                'quiz__choice_questions',
+                queryset=QuizChoiceQuestion.objects.select_related(
+                    'question'
+                ).prefetch_related('question__options'),
+            ),
+            Prefetch(
+                'quiz__text_questions',
+                queryset=QuizTextQuestion.objects.select_related('question'),
+            ),
+        )
+        .first()
+    )
+
+    if not cohort_quiz:
+        return redirect('classes:student-dashboard')
+
+    # Check if user is enrolled in the cohort
+    if user not in cohort_quiz.cohort.students.all():
+        return redirect('classes:student-dashboard')
+
+    # Get submission if exists
+    latest_attempt = (
+        QuizAttempt.objects.filter(quiz=quiz, student=user)
+        .prefetch_related(
+            Prefetch(
+                'choice_submissions',
+                queryset=ChoiceQuestionSubmission.objects.select_related('question')
+                .filter(
+                    question__in=[
+                        q.question for q in cohort_quiz.quiz.choice_questions.all()
+                    ],
+                    quiz_attempt__completed_at__in=QuizAttempt.objects.filter(
+                        quiz=quiz, student=user
+                    ).values('completed_at'),
+                )
+                .prefetch_related('selected_options')
+                .order_by('question', '-quiz_attempt__completed_at'),
+                to_attr='filtered_choice_submissions',
+            ),
+            Prefetch(
+                'text_submissions',
+                queryset=TextQuestionSubmission.objects.select_related('question')
+                .filter(
+                    question__in=[
+                        q.question for q in cohort_quiz.quiz.text_questions.all()
+                    ],
+                    quiz_attempt__completed_at__in=QuizAttempt.objects.filter(
+                        quiz=quiz, student=user
+                    ).values('completed_at'),
+                )
+                .order_by('question', '-quiz_attempt__completed_at'),
+                to_attr='filtered_text_submissions',
+            ),
+        )
+        .order_by('-completed_at')
+        .first()
+    )
+
+    if request.method == 'POST':
+        # Check if multiple attempts are allowed
+        if latest_attempt and not cohort_quiz.quiz.allow_multiple_attempts:
+            messages.error(request, 'Multiple attempts are not allowed for this quiz.')
+            return redirect('classes:student-dashboard')
+
+        try:
+            with transaction.atomic():
+                attempt = QuizAttempt.objects.create(
+                    quiz=cohort_quiz.quiz, student=user
+                )
+                earned_points = 0
+
+                to_be_created_choice_submissions = []
+                choice_submissions_options = []
+                to_be_created_text_submissions = []
+
+                # Handle choice questions
+                for quiz_question in cohort_quiz.quiz.choice_questions.all():
+                    question = quiz_question.question
+                    option_ids = request.POST.getlist(f'choice_{question.id}')
+
+                    selected_options = question.options.filter(id__in=option_ids)
+                    correct_options = set(
+                        o for o in question.options.all() if o.is_correct
+                    )
+                    is_correct = set(selected_options) == correct_options
+
+                    to_be_created_choice_submissions.append(
+                        ChoiceQuestionSubmission(
+                            quiz_attempt=attempt,
+                            question=question,
+                            is_correct=is_correct,
+                        )
+                    )
+                    choice_submissions_options.append(selected_options)
+
+                    if is_correct:
+                        earned_points += quiz_question.points
+
+                # Handle text questions
+                for quiz_question in cohort_quiz.quiz.text_questions.all():
+                    question = quiz_question.question
+                    answer = request.POST.get(f'text_{question.id}', '').strip()
+
+                    is_correct = False
+                    if answer:
+                        if question.is_case_sensitive:
+                            is_correct = (
+                                answer == question.answer
+                                or answer in question.alternative_answers
+                            )
+                        else:
+                            answer_lower = answer.lower()
+                            is_correct = (
+                                answer_lower == question.answer.lower()
+                                or answer_lower
+                                in [ans.lower() for ans in question.alternative_answers]
+                            )
+
+                    to_be_created_text_submissions.append(
+                        TextQuestionSubmission(
+                            quiz_attempt=attempt,
+                            question=question,
+                            answer=answer,
+                            is_correct=is_correct,
+                        )
+                    )
+
+                    if is_correct:
+                        earned_points += quiz_question.points
+
+                created_choice_submissions = (
+                    ChoiceQuestionSubmission.objects.bulk_create(
+                        to_be_created_choice_submissions
+                    )
+                )
+                # Set many-to-many relations for choice submissions and their options
+                for submission, options in zip(
+                    created_choice_submissions, choice_submissions_options
+                ):
+                    submission.selected_options.set(options)
+
+                TextQuestionSubmission.objects.bulk_create(
+                    to_be_created_text_submissions
+                )
+
+                # Calculate and save final score
+                attempt.score = earned_points
+                attempt.completed_at = timezone.now()
+                attempt.save()
+
+                # Create quiz submission record for the course
+                LiveCohortQuizSubmission.objects.create(
+                    cohort_quiz=cohort_quiz, quiz_attempt=attempt
+                )
+
+                messages.success(request, 'Quiz submitted successfully!')
+                return redirect('classes:quiz', id=id)
+
+        except Exception as e:
+            messages.error(
+                request, f'An error occurred while submitting the quiz: {str(e)}'
+            )
+            return redirect('classes:quiz', id=id)
+
+    return render(
+        request,
+        'classes/quiz.html',
+        {'cohort_quiz': cohort_quiz, 'latest_attempt': latest_attempt},
+    )

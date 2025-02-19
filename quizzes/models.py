@@ -10,7 +10,7 @@ class ChoiceQuestion(BaseModel, CreatedUpdatedMixin):
     is_multiple_choice = models.BooleanField(default=False)
     explanation = models.TextField(blank=True)
     teacher = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='choice_questions'
+        User, on_delete=models.CASCADE, related_name='%(app_label)s_choice_questions'
     )
 
     def __str__(self):
@@ -39,7 +39,7 @@ class TextQuestion(BaseModel, CreatedUpdatedMixin):
     is_case_sensitive = models.BooleanField(default=False)
     explanation = models.TextField(blank=True)
     teacher = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='text_questions'
+        User, on_delete=models.CASCADE, related_name='%(app_label)s_text_questions'
     )
 
     def __str__(self):
@@ -49,7 +49,9 @@ class TextQuestion(BaseModel, CreatedUpdatedMixin):
 class Quiz(BaseModel, CreatedUpdatedMixin):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
-    teacher = models.ForeignKey(User, on_delete=models.CASCADE, related_name='quizzes')
+    teacher = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='%(app_label)s_%(class)s'
+    )
     due_date = models.DateTimeField(null=True, blank=True)
     is_auto_graded = models.BooleanField(default=True)
     end_message = models.TextField(blank=True)
@@ -104,9 +106,8 @@ class QuizAttempt(BaseModel, CreatedUpdatedMixin):
         null=True,
         blank=True,
     )
-    score = models.FloatField(null=True, blank=True)
+    score = models.IntegerField(null=True, blank=True)
     completed_at = models.DateTimeField(null=True, blank=True)
-    attempt_number = models.PositiveSmallIntegerField(default=1)
 
 
 class ChoiceQuestionSubmission(BaseModel, CreatedUpdatedMixin):

@@ -57,4 +57,5 @@ urlpatterns = [
         views.edit_live_cohort,
         name='edit-live-cohort',
     ),
+    path('cohort/<int:id>/all-quizzes/', views.all_quizzes, name='all-quizzes'),
 ]

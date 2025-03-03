@@ -24,11 +24,7 @@
                         <div class="bg-primary-600 h-2.5 rounded-full" style="width: {{ cohort.course_progress }}%"></div>
                     </div>
                     <p class="text-xs text-slate-500 mt-1">
-                        {% with cohort.sessions.first as first_session %}
-                        {% with cohort.sessions.last as last_session %}
-                        {{ first_session.start_time|date:"M j, Y" }} - {{ last_session.end_time|date:"M j, Y" }}
-                        {% endwith %}
-                        {% endwith %}
+                        {{ cohort.start_date|date:"M j, Y" }} - {{ cohort.end_date|date:"M j, Y" }}
                     </p>
                 </div>
             </div>
@@ -47,12 +43,14 @@
                     {% include 'classes/assignments_component.html' %}
                 </div>
 
+                {% comment %}
                 <!-- Left Column - Quizzes -->
                 <div class="bg-white rounded-xl shadow-lg p-6">
                     <!-- Upcoming Quizzes -->
                     <h3 class="font-bold text-slate-800 mb-4">Upcoming Quizzes</h3>
                     {% include 'classes/quizzes_component.html' %}
                 </div>
+                {% endcomment %}
             </div>
         </div>
         {% endfor %}

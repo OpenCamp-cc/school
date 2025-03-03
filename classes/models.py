@@ -56,7 +56,7 @@ class LiveCohort(BaseModel, CreatedUpdatedMixin):
 
             total_days = (self.end_date - self.start_date).days
             days_passed = (timezone.now() - self.start_date).days
-            self.progress = int(days_passed / total_days)
+            self.progress = int((float(days_passed) / total_days) * 100)
 
         return self.progress
 
@@ -175,6 +175,8 @@ class LiveCohortAssignment(BaseModel, CreatedUpdatedMixin):
     attachment = models.FileField(upload_to='assignments/', blank=True, null=True)
     submission_optional = models.BooleanField(default=False)
     external_url = models.URLField(null=True, blank=True)
+
+    is_submitted: bool
 
     def __str__(self):
         return f'{self.name} - {self.cohort}'

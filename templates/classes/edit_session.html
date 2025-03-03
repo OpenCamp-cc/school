@@ -60,7 +60,7 @@
             <div>
                 <label for="meeting_url" class="block text-sm font-medium leading-6 text-gray-900">Meeting URL</label>
                 <div class="mt-2">
-                    <input id="meeting_url" name="meeting_url" type="url" value="{{ session.meeting_url }}"
+                    <input id="meeting_url" name="meeting_url" type="url" value="{% if session.meeting_url %}{{ session.meeting_url }}{% endif %}"
                         class="block w-full rounded-md border-0 px-2 py-1.5 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6">
                 </div>
             </div>

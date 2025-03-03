@@ -181,6 +181,17 @@ def student_dashboard(request: AuthenticatedHttpRequest) -> HttpResponse:
         ).order_by('due_date')[:5]
         cohort.upcoming_assignments = list(assignments)
 
+        # Get all assignment submissions by this user for this cohort's assignments
+        submitted_assignments = set(
+            LiveCohortAssignmentSubmission.objects.filter(
+                assignment__cohort=cohort, student=user, submitted=True
+            ).values_list('assignment_id', flat=True)
+        )
+
+        # Mark assignments as submitted
+        for assignment in cohort.upcoming_assignments:
+            assignment.is_submitted = assignment.id in submitted_assignments
+
         if len(cohort.upcoming_sessions) > 4:
             cohort.upcoming_sessions = cohort.upcoming_sessions[:4]
             cohort.has_more_sessions = True
@@ -227,6 +238,18 @@ def all_assignments(request: AuthenticatedHttpRequest, id: int) -> HttpResponse:
 
     cohort_assignments = cohort.assignments.order_by('due_date')
     cohort.upcoming_assignments = list(cohort_assignments)
+
+    # Get all assignment submissions by this user for this cohort's assignments
+    submitted_assignments = set(
+        LiveCohortAssignmentSubmission.objects.filter(
+            assignment__cohort=cohort, student=user, submitted=True
+        ).values_list('assignment_id', flat=True)
+    )
+
+    # Mark assignments as submitted
+    for assignment in cohort.upcoming_assignments:
+        assignment.is_submitted = assignment.id in submitted_assignments
+
     context = {
         'cohort': cohort,
         'all': True,
@@ -255,6 +278,21 @@ def view_assignment(request: HttpRequest, id: int) -> HttpResponse:
     submission = LiveCohortAssignmentSubmission.objects.filter(
         assignment=assignment, student=user
     ).first()
+
+    if request.method == 'POST':
+        submission_text = request.POST.get('submission')
+
+        if not submission:
+            submission = LiveCohortAssignmentSubmission.objects.create(
+                assignment=assignment,
+                student=user,
+                comments=submission_text,
+                submitted=True,
+            )
+        else:
+            submission.comments = submission_text
+            submission.submitted = True
+            submission.save()
 
     context = {
         'assignment': assignment,

@@ -129,10 +129,14 @@ def cohort_students(request: HttpRequest, id: int) -> HttpResponse:
     else:
         form = AddStudentForm()
 
+    students = (
+        cohort.students.prefetch_related('signup_invites').order_by('first_name').all()
+    )
+
     context = {
         'cohort': cohort,
         'form': form,
-        'students': cohort.students.all().order_by('first_name', 'last_name'),
+        'students': students,
     }
     return render(request, 'classes/students.html', context)
 

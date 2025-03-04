@@ -62,6 +62,14 @@ class SignupInvite(CreatedUpdatedMixin, BaseModel):
     code = models.CharField(max_length=255, unique=True)
     invited = models.BooleanField(default=False)
 
+    def link(self):
+        return (
+            os.getenv('SERVER_HOST', '')
+            + reverse('users:signup')
+            + '?code='
+            + self.code
+        )
+
 
 @receiver(post_save, sender=User)
 def create_external_profile(sender, instance, created, **kwargs):

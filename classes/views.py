@@ -284,7 +284,11 @@ def view_assignment(request: HttpRequest, id: int) -> HttpResponse:
     ).first()
 
     if request.method == 'POST':
-        submission_text = request.POST.get('submission')
+        submission_text = request.POST.get('submission', '')
+
+        if not submission_text.strip():
+            messages.error(request, 'Submission cannot be empty.')
+            return redirect('classes:assignment', id=id)
 
         if not submission:
             submission = LiveCohortAssignmentSubmission.objects.create(

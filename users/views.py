@@ -42,7 +42,6 @@ def signup(request):
         user.is_active = True
         user.save()
 
-        # Mark invite as used
         invite.invited = True
         invite.save()
 

@@ -12,9 +12,15 @@
         <div>
             <h2 class="text-3xl font-bold text-slate-800">{{ assignment.name }}</h2>
             <p class="text-slate-600">{{ assignment.cohort.name }}</p>
-            <div class="mt-4 flex flex-row gap-x-4 items-center">
-                <p class="text-lg font-medium text-primary-600">Due {{ assignment.due_date|date:"M j, Y" }}</p>
-                <p class="text-sm text-slate-600">{{ assignment.due_date|time:"g:i A" }}</p>
+            <div class="mt-4 flex flex-row gap-x-2 items-center">
+                <p class="text-lg font-medium text-primary-600">Due {{ assignment.due_date|date:"M j, Y" }} at {{ assignment.due_date|time:"g:i A" }}, Anywhere on Earth</p>
+                <p class="text-sm text-slate-600">
+                    <a href="https://dateful.com/convert/anywhere-on-earth-aoe?t={{ assignment.due_date|time:"Hi" }}&d={{ assignment.due_date|date:"Y-m-d" }}"
+                        class="text-primary-600 hover:text-primary-700"
+                        target="_blank" rel="noopener noreferrer">
+                        (Check Your Local Time Here)
+                    </a>
+                </p>
             </div>
         </div>
     </div>

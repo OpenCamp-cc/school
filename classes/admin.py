@@ -3,6 +3,7 @@ from django.contrib import admin
 from .models import (
     LiveCohort,
     LiveCohortAssignment,
+    LiveCohortAssignmentSubmission,
     LiveCohortQuiz,
     LiveCohortRegistration,
     LiveCohortSession,
@@ -16,6 +17,11 @@ class LiveCohortAdmin(admin.ModelAdmin):
 
 @admin.register(LiveCohortSession)
 class LiveCohortSessionAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(LiveCohortAssignmentSubmission)
+class LiveCohortAssignmentSubmissionAdmin(admin.ModelAdmin):
     pass
 
 

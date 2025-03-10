@@ -1,6 +1,6 @@
 <div id="cohort_{{ cohort.id }}_assignments" class="space-y-4">
-    {% if cohort.upcoming_assignments %}
-        {% for assignment in cohort.upcoming_assignments %}
+    {% if cohort.cohort_assignments %}
+        {% for assignment in cohort.cohort_assignments %}
         <div class="flex justify-between p-3 border border-gray-200 rounded-lg hover:bg-primary-50">
             <div>
                 <div class="flex items-center gap-2">

@@ -41,8 +41,8 @@ class LiveCohort(BaseModel, CreatedUpdatedMixin):
     assignments: models.QuerySet['LiveCohortAssignment']
     quizzes = models.ManyToManyField('quizzes.Quiz', through='LiveCohortQuiz')
 
-    upcoming_assignments: List['LiveCohortAssignment']
-    upcoming_sessions: List['LiveCohortSession']
+    cohort_assignments: List['LiveCohortAssignment']
+    cohort_sessions: List['LiveCohortSession']
     has_more_sessions: bool
     has_more_assignments: bool
     upcoming_quizzes: List['LiveCohortQuiz']
@@ -99,9 +99,14 @@ class LiveCohortSession(BaseModel, CreatedUpdatedMixin):
     end_time = models.DateTimeField()
 
     meeting_url = models.URLField(null=True, blank=True)
+    video_recording_link = models.URLField(null=True, blank=True)
+    video_recording_notes = models.TextField(null=True, blank=True)
 
     class Meta:
         ordering = ['start_time']
+
+    def is_completed(self) -> bool:
+        return self.end_time < timezone.now()
 
     def __str__(self):
         return f'{self.name} - {self.cohort} - {self.start_time} ~ {self.end_time}'

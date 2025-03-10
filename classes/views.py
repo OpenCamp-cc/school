@@ -70,22 +70,15 @@ def teacher_dashboard(request: HttpRequest) -> HttpResponse:
     live_cohorts = LiveCohort.objects.filter(teacher=user)
 
     # Get upcoming sessions from live cohorts
-    now = timezone.now()
-    upcoming_sessions = []
     for cohort in live_cohorts:
-        cohort.upcoming_sessions = list(
-            cohort.sessions.filter(start_time__gt=now).order_by('start_time')
-        )
-        cohort.upcoming_assignments = list(
-            cohort.assignments.filter(due_date__gt=now).order_by('due_date')
-        )
+        cohort.cohort_sessions = list(cohort.sessions.order_by('start_time'))
+        cohort.cohort_assignments = list(cohort.assignments.order_by('due_date'))
 
     context = {
         'cohorts': live_cohorts,
-        'upcoming_sessions': upcoming_sessions,
     }
 
-    return render(request, 'classes/teacher-dashboard.html', context)
+    return render(request, 'classes/teacher_dashboard.html', context)
 
 
 @user_passes_test(lambda u: u.is_staff)
@@ -169,21 +162,14 @@ def student_dashboard(request: AuthenticatedHttpRequest) -> HttpResponse:
     # Get all classes enrolled by the user
     live_cohorts = LiveCohort.objects.filter(Q(students=user) | Q(teacher=user))
 
-    # Get upcoming sessions from live cohorts
-    now = timezone.now()
-    upcoming_sessions = {}
-    upcoming_assignments = {}
-
     for cohort in live_cohorts:
-        cohort_sessions = cohort.sessions.filter(start_time__gt=now).order_by(
-            'start_time'
-        )[:5]
-        cohort.upcoming_sessions = list(cohort_sessions)
+        cohort_sessions = cohort.sessions.order_by('start_time')
+        cohort.cohort_sessions = list(cohort_sessions)
 
         assignments = LiveCohortAssignment.objects.filter(cohort=cohort).order_by(
             'due_date'
-        )[:5]
-        cohort.upcoming_assignments = list(assignments)
+        )
+        cohort.cohort_assignments = list(assignments)
 
         # Get all assignment submissions by this user for this cohort's assignments
         submitted_assignments = set(
@@ -193,23 +179,8 @@ def student_dashboard(request: AuthenticatedHttpRequest) -> HttpResponse:
         )
 
         # Mark assignments as submitted
-        for assignment in cohort.upcoming_assignments:
+        for assignment in cohort.cohort_assignments:
             assignment.is_submitted = assignment.id in submitted_assignments
-
-        if len(cohort.upcoming_sessions) > 4:
-            cohort.upcoming_sessions = cohort.upcoming_sessions[:4]
-            cohort.has_more_sessions = True
-
-        if len(cohort.upcoming_assignments) > 4:
-            cohort.upcoming_assignments = cohort.upcoming_assignments[:4]
-            cohort.has_more_assignments = True
-
-        cohort_quizzes = (
-            LiveCohortQuiz.objects.filter(cohort=cohort, due_date__gt=now)
-            .select_related('quiz')
-            .order_by('due_date')[:4]
-        )
-        cohort.upcoming_quizzes = list(cohort_quizzes)
 
     context = {
         'cohorts': live_cohorts,
@@ -225,7 +196,7 @@ def all_sessions(request: AuthenticatedHttpRequest, id: int) -> HttpResponse:
     cohort = get_object_or_404(qs, id=id)
 
     cohort_sessions = cohort.sessions.order_by('start_time')
-    cohort.upcoming_sessions = list(cohort_sessions)
+    cohort.cohort_sessions = list(cohort_sessions)
     context = {
         'cohort': cohort,
         'all': True,
@@ -241,7 +212,7 @@ def all_assignments(request: AuthenticatedHttpRequest, id: int) -> HttpResponse:
     cohort = get_object_or_404(qs, id=id)
 
     cohort_assignments = cohort.assignments.order_by('due_date')
-    cohort.upcoming_assignments = list(cohort_assignments)
+    cohort.cohort_assignments = list(cohort_assignments)
 
     # Get all assignment submissions by this user for this cohort's assignments
     submitted_assignments = set(
@@ -251,7 +222,7 @@ def all_assignments(request: AuthenticatedHttpRequest, id: int) -> HttpResponse:
     )
 
     # Mark assignments as submitted
-    for assignment in cohort.upcoming_assignments:
+    for assignment in cohort.cohort_assignments:
         assignment.is_submitted = assignment.id in submitted_assignments
 
     context = {
@@ -375,7 +346,7 @@ def cohort_sessions(request: HttpRequest, id: int) -> HttpResponse:
     else:
         form = LiveCohortSessionForm()
 
-    cohort.upcoming_sessions = list(cohort.sessions.order_by('start_time'))
+    cohort.cohort_sessions = list(cohort.sessions.order_by('start_time'))
     context = {
         'cohort': cohort,
         'form': form,

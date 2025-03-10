@@ -55,8 +55,8 @@
                     <div class="grid md:grid-cols-2 gap-8">
                         <!-- Left Column - Sessions -->
                         <div class="bg-white rounded-xl shadow-lg p-6">
-                            <h4 class="text-xl font-bold text-slate-800 mb-4">Upcoming Sessions</h4>
-                            {% if cohort.upcoming_sessions %}
+                            <h4 class="text-xl font-bold text-slate-800 mb-4">Sessions</h4>
+                            {% if cohort.cohort_sessions %}
                                 {% include 'classes/sessions_component.html' with all='True' %}
                             {% else %}
                                 <p class="text-sm text-slate-600">No upcoming sessions</p>
@@ -65,8 +65,8 @@
 
                         <!-- Right Column - Assignments -->
                         <div class="bg-white rounded-xl shadow-lg p-6">
-                            <h4 class="text-xl font-bold text-slate-800 mb-4">Upcoming Assignments</h4>
-                            {% if cohort.upcoming_assignments %}
+                            <h4 class="text-xl font-bold text-slate-800 mb-4">Assignments</h4>
+                            {% if cohort.cohort_assignments %}
                                 {% include 'classes/assignments_component.html' with all="True" %}
                             {% else %}
                                 <p class="text-sm text-slate-600">No upcoming assignments</p>

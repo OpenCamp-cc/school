@@ -180,9 +180,9 @@ def student_dashboard(request: AuthenticatedHttpRequest) -> HttpResponse:
         )[:5]
         cohort.upcoming_sessions = list(cohort_sessions)
 
-        assignments = LiveCohortAssignment.objects.filter(
-            cohort=cohort, due_date__gt=now
-        ).order_by('due_date')[:5]
+        assignments = LiveCohortAssignment.objects.filter(cohort=cohort).order_by(
+            'due_date'
+        )[:5]
         cohort.upcoming_assignments = list(assignments)
 
         # Get all assignment submissions by this user for this cohort's assignments

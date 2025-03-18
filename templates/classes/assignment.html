@@ -60,6 +60,16 @@
     </div>
     {% endif %}
 
+
+    {% if submission.feedback %}
+
+    <h2 class="font-semibold">Feedback</span>
+    <p class="mt-4 text-gray-600 text-base font-normal mb-12">
+        {{ submission.feedback|safe|linebreaksbr }}
+    </p>
+
+    {% endif %}
+
     {% if not assignment.submission_optional %}
     <!-- Submission Section -->
     <div class="bg-white rounded-xl shadow-lg p-6 mb-8">

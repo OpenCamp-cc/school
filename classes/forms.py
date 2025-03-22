@@ -1,6 +1,11 @@
 from django import forms
 
-from .models import LiveCohort, LiveCohortAssignment, LiveCohortSession
+from .models import (
+    LiveCohort,
+    LiveCohortAssignment,
+    LiveCohortSession,
+    LiveCohortWaitList,
+)
 
 
 class LiveCohortForm(forms.ModelForm):
@@ -83,3 +88,22 @@ class LiveCohortSessionForm(forms.ModelForm):
                 raise forms.ValidationError('End time must be after start time')
 
         return cleaned_data
+
+
+class WaitListForm(forms.ModelForm):
+    class Meta:
+        model = LiveCohortWaitList
+        fields = [
+            'name',
+            'email',
+            'questions',
+        ]
+        widgets = {
+            'name': forms.TextInput(),
+            'email': forms.EmailInput(),
+            'questions': forms.Textarea(attrs={'rows': 4}),
+        }
+
+    questions = forms.CharField(
+        widget=forms.Textarea(attrs={'rows': 4}), required=False
+    )

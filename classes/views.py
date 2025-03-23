@@ -630,7 +630,8 @@ def wait_list(request: HttpRequest, id: int) -> HttpResponse:
                 wait_list_entry.save()
 
                 messages.success(
-                    request, 'You have been added to the waiting list successfully.'
+                    request,
+                    'Thank you! We will get back to you once the course is confirmed.',
                 )
                 return redirect('classes:courses')
         else:

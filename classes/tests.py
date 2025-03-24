@@ -78,7 +78,7 @@ def test_teacher_dashboard(client, user):
     user.save()
     response = client.get(url)
     assert response.status_code == 200
-    assertTemplateUsed(response, 'classes/teacher-dashboard.html')
+    assertTemplateUsed(response, "classes/teacher_dashboard.html")
 
     # Verify dashboard shows teacher's cohorts
     cohort = LiveCohort.objects.create(

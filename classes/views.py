@@ -25,6 +25,7 @@ from .forms import (
     AddStudentForm,
     LiveCohortForm,
     LiveCohortSessionForm,
+    WaitListForm,
 )
 from .models import (
     LiveCohort,
@@ -34,6 +35,7 @@ from .models import (
     LiveCohortQuizSubmission,
     LiveCohortRegistration,
     LiveCohortSession,
+    LiveCohortWaitList,
 )
 
 
@@ -51,7 +53,7 @@ def faq(request: HttpRequest) -> HttpResponse:
 
 def upcoming_courses(request: HttpRequest) -> HttpResponse:
     cohorts = list(LiveCohort.objects.all())
-    return render(request, 'courses.html', {'cohorts': cohorts})
+    return render(request, 'courses.html', {'cohorts': cohorts, 'now': timezone.now()})
 
 
 def curriculum(request: HttpRequest) -> HttpResponse:
@@ -606,3 +608,39 @@ def view_quiz(request: HttpRequest, id: int) -> HttpResponse:
         'classes/quiz.html',
         {'cohort_quiz': cohort_quiz, 'latest_attempt': latest_attempt},
     )
+
+
+def wait_list(request: HttpRequest, id: int) -> HttpResponse:
+    cohort = get_object_or_404(LiveCohort, id=id)
+
+    if request.method == 'POST':
+        form = WaitListForm(request.POST)
+        if form.is_valid():
+            existing = LiveCohortWaitList.objects.select_related('cohort').filter(
+                cohort=cohort, email=form.cleaned_data['email']
+            ).exists()
+
+            if existing:
+                messages.warning(
+                    request, 'You are already on the waiting list for this course.'
+                )
+            else:
+                wait_list_entry = form.save(commit=False)
+                wait_list_entry.cohort = cohort
+                wait_list_entry.save()
+
+                messages.success(
+                    request,
+                    'Thank you! We will get back to you once the course is confirmed.',
+                )
+                return redirect('classes:courses')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = WaitListForm()
+
+    context = {
+        'cohort': cohort,
+        'form': form,
+    }
+    return render(request, 'classes/wait_list.html', context)

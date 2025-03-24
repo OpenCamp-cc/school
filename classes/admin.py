@@ -7,6 +7,7 @@ from .models import (
     LiveCohortQuiz,
     LiveCohortRegistration,
     LiveCohortSession,
+    LiveCohortWaitList,
 )
 
 
@@ -37,4 +38,9 @@ class LiveCohortAssignmentAdmin(admin.ModelAdmin):
 
 @admin.register(LiveCohortQuiz)
 class LiveCohortQuizAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(LiveCohortWaitList)
+class LiveCohortWaitListAdmin(admin.ModelAdmin):
     pass

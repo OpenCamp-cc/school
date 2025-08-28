@@ -43,4 +43,4 @@ class LiveCohortQuizAdmin(admin.ModelAdmin):
 
 @admin.register(LiveCohortWaitList)
 class LiveCohortWaitListAdmin(admin.ModelAdmin):
-    pass
+    list_display = ['id', 'name', 'email', 'cohort']

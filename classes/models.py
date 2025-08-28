@@ -256,8 +256,5 @@ class LiveCohortWaitList(BaseModel, CreatedUpdatedMixin):
     email = models.EmailField()
     questions = models.TextField(blank=True, null=True)
 
-    class Meta:
-        unique_together = ('cohort', 'email')
-
     def __str__(self):
         return f'{self.name} - {self.cohort.name}'

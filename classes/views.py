@@ -52,7 +52,9 @@ def faq(request: HttpRequest) -> HttpResponse:
 
 
 def upcoming_courses(request: HttpRequest) -> HttpResponse:
-    cohorts = list(LiveCohort.objects.filter(is_active=True).all())
+    cohorts = list(
+        LiveCohort.objects.filter(is_active=True).order_by('start_date').all()
+    )
     return render(request, 'courses.html', {'cohorts': cohorts, 'now': timezone.now()})
 
 
@@ -616,26 +618,18 @@ def wait_list(request: HttpRequest, id: int) -> HttpResponse:
     if request.method == 'POST':
         form = WaitListForm(request.POST)
         if form.is_valid():
-            existing = (
-                LiveCohortWaitList.objects.select_related('cohort')
-                .filter(cohort=cohort, email=form.cleaned_data['email'])
-                .exists()
-            )
+            wait_list_entry = form.save(commit=False)
+            wait_list_entry.cohort = cohort
+            wait_list_entry.save()
 
-            if existing:
-                messages.warning(
-                    request, 'You are already on the waiting list for this course.'
-                )
-            else:
-                wait_list_entry = form.save(commit=False)
-                wait_list_entry.cohort = cohort
-                wait_list_entry.save()
+            if request.htmx:
+                context = {
+                    'name': wait_list_entry.name,
+                    'cohort': cohort,
+                }
+                return render(request, 'classes/wait_list_added.html', context)
 
-                messages.success(
-                    request,
-                    'Thank you! We will get back to you once the course is confirmed.',
-                )
-                return redirect('classes:courses')
+            return redirect('classes:courses')
         else:
             messages.error(request, 'Please correct the errors below.')
     else:

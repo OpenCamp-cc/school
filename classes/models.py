@@ -48,6 +48,8 @@ class LiveCohort(BaseModel, CreatedUpdatedMixin):
     upcoming_quizzes: List['LiveCohortQuiz']
     progress: int | None = None
 
+    is_active = models.BooleanField(default=True)
+
     def course_progress(self):
         if not self.progress:
             # Check today's date against end date to track progress
@@ -248,14 +250,14 @@ class LiveCohortQuizSubmission(BaseModel, CreatedUpdatedMixin):
 
 class LiveCohortWaitList(BaseModel, CreatedUpdatedMixin):
     cohort = models.ForeignKey(
-        LiveCohort, on_delete=models.CASCADE, related_name="waitlist_entries"
+        LiveCohort, on_delete=models.CASCADE, related_name='waitlist_entries'
     )
     name = models.CharField(max_length=255)
     email = models.EmailField()
     questions = models.TextField(blank=True, null=True)
 
     class Meta:
-        unique_together = ("cohort", "email")
+        unique_together = ('cohort', 'email')
 
     def __str__(self):
-        return f"{self.name} - {self.cohort.name}"
+        return f'{self.name} - {self.cohort.name}'

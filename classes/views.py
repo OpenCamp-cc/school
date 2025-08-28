@@ -52,7 +52,7 @@ def faq(request: HttpRequest) -> HttpResponse:
 
 
 def upcoming_courses(request: HttpRequest) -> HttpResponse:
-    cohorts = list(LiveCohort.objects.all())
+    cohorts = list(LiveCohort.objects.filter(is_active=True).all())
     return render(request, 'courses.html', {'cohorts': cohorts, 'now': timezone.now()})
 
 
@@ -616,9 +616,11 @@ def wait_list(request: HttpRequest, id: int) -> HttpResponse:
     if request.method == 'POST':
         form = WaitListForm(request.POST)
         if form.is_valid():
-            existing = LiveCohortWaitList.objects.select_related('cohort').filter(
-                cohort=cohort, email=form.cleaned_data['email']
-            ).exists()
+            existing = (
+                LiveCohortWaitList.objects.select_related('cohort')
+                .filter(cohort=cohort, email=form.cleaned_data['email'])
+                .exists()
+            )
 
             if existing:
                 messages.warning(
